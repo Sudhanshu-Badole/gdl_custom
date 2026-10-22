@@ -1,6 +1,6 @@
 ### Gdl Custom App
 
-GDL Workflow Customization
+GDL Customization
 
 ### Installation
 

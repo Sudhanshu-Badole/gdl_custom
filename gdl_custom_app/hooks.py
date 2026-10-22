@@ -1,7 +1,7 @@
 app_name = "gdl_custom_app"
 app_title = "Gdl Custom App"
 app_publisher = "Sudhanshu Badole"
-app_description = "GDL Workflow Customization"
+app_description = "GDL Customization"
 app_email = "admin@corenex.in"
 app_license = "mit"
 

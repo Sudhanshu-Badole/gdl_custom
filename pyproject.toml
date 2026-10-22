@@ -3,7 +3,7 @@ name = "gdl_custom_app"
 authors = [
     { name = "Sudhanshu Badole", email = "admin@corenex.in"}
 ]
-description = "GDL Workflow Customization"
+description = "GDL Customization"
 requires-python = ">=3.14"
 readme = "README.md"
 dynamic = ["version"]
