@@ -43,7 +43,13 @@ app_license = "mit"
 # page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
-# doctype_js = {"doctype" : "public/js/doctype.js"}
+doctype_js = {
+	"Stock Entry": "public/js/btc_cost_center.js",
+	"Sales Invoice": "public/js/btc_cost_center.js",
+	"Delivery Note": "public/js/btc_cost_center.js",
+	"Purchase Receipt": "public/js/btc_cost_center.js",
+	"Stock Reconciliation": "public/js/btc_cost_center.js",
+}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
@@ -256,3 +262,43 @@ app_license = "mit"
 # List of apps whose translatable strings should be excluded from this app's translations.
 # ignore_translatable_strings_from = []
 
+
+required_apps = ["frappe", "erpnext"]
+
+# Cost Center auto-fill + BTC stock rules (gdl_custom_app/utils/btc.py). validate,
+# so it edits the rows in the same save, before any stock/GL posting.
+_btc = "gdl_custom_app.utils.btc.apply_btc_rules_and_cost_centers"
+doc_events = {
+	"Stock Entry": {
+		"validate": [_btc, "gdl_custom_app.utils.fee.validate_fee"],
+		"on_submit": "gdl_custom_app.utils.fee.create_fee_issue",
+		"on_cancel": "gdl_custom_app.utils.fee.cancel_fee_issue",
+	},
+	"Sales Invoice": {"validate": _btc},
+	"Delivery Note": {"validate": _btc},
+	"Purchase Receipt": {"validate": _btc},
+	"Stock Reconciliation": {"validate": _btc},
+	"Purchase Order": {"validate": "gdl_custom_app.overrides.purchase_order.validate"},
+}
+
+override_doctype_class = {"Asset": "gdl_custom_app.overrides.asset.CustomAsset"}
+
+# Zone / Custodian are Inventory Dimensions (they generate the zone/custodian
+# fields on every stock doctype); the other fields are plain Custom Fields.
+fixtures = [
+	{"dt": "Inventory Dimension", "filters": [["name", "in", ["Zone", "Custodian"]]]},
+	{
+		"dt": "Custom Field",
+		"filters": [
+			[
+				"name",
+				"in",
+				[
+					"Warehouse-custom_cost_center",
+					"Asset Category-custom_category_code",
+				],
+			]
+		],
+	},
+	{"dt": "Property Setter", "filters": [["doc_type", "=", "Asset Category"]]},
+]

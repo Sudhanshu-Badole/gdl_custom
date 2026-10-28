@@ -1,0 +1,94 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "creation": "2026-10-17 11:02:55.140919",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "btc_tracking_section",
+  "btc_item",
+  "btc_warehouse",
+  "column_break_vnyv",
+  "enable_btc_rules",
+  "require_zonecustodian_change_on_transfer",
+  "fee_section",
+  "fee_expense_account"
+ ],
+ "fields": [
+  {
+   "fieldname": "btc_item",
+   "fieldtype": "Link",
+   "label": "BTC Item",
+   "link_filters": "[[\"Item\",\"is_stock_item\",\"=\",1]]",
+   "options": "Item"
+  },
+  {
+   "fieldname": "btc_warehouse",
+   "fieldtype": "Link",
+   "label": "BTC Warehouse",
+   "options": "Warehouse"
+  },
+  {
+   "fieldname": "column_break_vnyv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_btc_rules",
+   "fieldtype": "Check",
+   "label": "Enable BTC Rules"
+  },
+  {
+   "default": "0",
+   "description": "Rejects a BTC transfer where neither zone nor custodian changed.",
+   "fieldname": "require_zonecustodian_change_on_transfer",
+   "fieldtype": "Check",
+   "label": "Require Zone/Custodian Change on Transfer"
+  },
+  {
+   "fieldname": "btc_tracking_section",
+   "fieldtype": "Section Break",
+   "label": "BTC Tracking"
+  },
+  {
+   "fieldname": "fee_section",
+   "fieldtype": "Section Break",
+   "label": "BTC Transfer Fee"
+  },
+  {
+   "description": "Debited by the Material Issue created for a BTC transfer fee.",
+   "fieldname": "fee_expense_account",
+   "fieldtype": "Link",
+   "label": "Fee Expense Account",
+   "link_filters": "[[\"Account\",\"is_group\",\"=\",0]]",
+   "options": "Account"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-10-17 11:08:34.061944",
+ "modified_by": "Administrator",
+ "module": "Gdl Custom App",
+ "name": "GDL Setting",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

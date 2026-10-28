@@ -1,0 +1,41 @@
+{
+ "custom_fields": [
+  {
+   "doctype": "Custom Field",
+   "dt": "Stock Entry",
+   "fieldname": "custom_fee_stock_entry",
+   "module": null,
+   "owner": "Administrator",
+   "name": "Stock Entry-custom_fee_stock_entry",
+   "fieldtype": "Link",
+   "options": "Stock Entry",
+   "label": "Fee Material Issue",
+   "insert_after": "purpose",
+   "read_only": 1,
+   "no_copy": 1,
+   "print_hide": 1,
+   "depends_on": "eval:doc.custom_fee_stock_entry"
+  },
+  {
+   "doctype": "Custom Field",
+   "dt": "Stock Entry",
+   "fieldname": "custom_fee_charge_for",
+   "module": null,
+   "owner": "Administrator",
+   "name": "Stock Entry-custom_fee_charge_for",
+   "fieldtype": "Link",
+   "options": "Stock Entry",
+   "label": "Fee Charge For",
+   "insert_after": "custom_fee_stock_entry",
+   "read_only": 1,
+   "no_copy": 1,
+   "print_hide": 1,
+   "depends_on": "eval:doc.custom_fee_charge_for"
+  }
+ ],
+ "custom_perms": [],
+ "doctype": "Stock Entry",
+ "links": [],
+ "property_setters": [],
+ "sync_on_migrate": 1
+}
