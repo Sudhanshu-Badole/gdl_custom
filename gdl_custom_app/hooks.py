@@ -155,6 +155,10 @@ doctype_js = {
 # Scheduled Tasks
 # ---------------
 
+scheduler_events = {
+	"daily": ["gdl_custom_app.gdl_custom_app.doctype.btc_restriction.btc_restriction.expire_restrictions"],
+}
+
 # scheduler_events = {
 # 	"all": [
 # 		"gdl_custom_app.tasks.all"
@@ -270,15 +274,45 @@ required_apps = ["frappe", "erpnext"]
 _btc = "gdl_custom_app.utils.btc.apply_btc_rules_and_cost_centers"
 doc_events = {
 	"Stock Entry": {
-		"validate": [_btc, "gdl_custom_app.utils.fee.validate_fee"],
-		"on_submit": "gdl_custom_app.utils.fee.create_fee_issue",
-		"on_cancel": "gdl_custom_app.utils.fee.cancel_fee_issue",
+		"before_validate": "gdl_custom_app.btc.receipts.prepare_stock_entry",
+		"validate": [
+			_btc,
+			"gdl_custom_app.btc.receipts.validate_receipt",
+			"gdl_custom_app.btc.transfers.validate_transfer",
+			"gdl_custom_app.utils.fee.validate_fee",
+		],
+		"before_submit": "gdl_custom_app.btc.transfers.validate_availability",
+		"on_submit": [
+			"gdl_custom_app.btc.receipts.post_usd_ledger",
+			"gdl_custom_app.btc.transfers.create_restrictions",
+			"gdl_custom_app.utils.fee.create_fee_issue",
+		],
+		"on_cancel": [
+			"gdl_custom_app.utils.fee.cancel_fee_issue",
+			"gdl_custom_app.btc.transfers.cancel_restrictions",
+			"gdl_custom_app.btc.receipts.reverse_usd_ledger",
+		],
 	},
-	"Sales Invoice": {"validate": _btc},
-	"Delivery Note": {"validate": _btc},
-	"Purchase Receipt": {"validate": _btc},
+	"Sales Invoice": {"validate": [_btc, "gdl_custom_app.btc.receipts.validate_sales_invoice"]},
+	"Delivery Note": {
+		"validate": ["gdl_custom_app.btc.receipts.validate_delivery_note", _btc],
+		"before_submit": "gdl_custom_app.btc.receipts.validate_delivery_availability",
+		"on_submit": "gdl_custom_app.btc.receipts.post_usd_ledger",
+		"on_cancel": "gdl_custom_app.btc.receipts.reverse_usd_ledger",
+	},
+	"Sales Order": {"validate": "gdl_custom_app.btc.receipts.validate_sales_order"},
+	"Purchase Receipt": {
+		"validate": ["gdl_custom_app.btc.receipts.validate_purchase_receipt", _btc],
+		"on_submit": "gdl_custom_app.btc.receipts.post_usd_ledger",
+		"on_cancel": "gdl_custom_app.btc.receipts.reverse_usd_ledger",
+	},
 	"Stock Reconciliation": {"validate": _btc},
-	"Purchase Order": {"validate": "gdl_custom_app.overrides.purchase_order.validate"},
+	"Purchase Order": {
+		"validate": [
+			"gdl_custom_app.overrides.purchase_order.validate",
+			"gdl_custom_app.btc.receipts.validate_purchase_order",
+		]
+	},
 }
 
 override_doctype_class = {"Asset": "gdl_custom_app.overrides.asset.CustomAsset"}

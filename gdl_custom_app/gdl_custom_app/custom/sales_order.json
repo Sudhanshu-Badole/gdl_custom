@@ -1,0 +1,51 @@
+{
+ "custom_fields": [
+  {
+   "doctype": "Custom Field",
+   "dt": "Sales Order",
+   "module": null,
+   "owner": "Administrator",
+   "name": "Sales Order-custom_is_btc",
+   "fieldname": "custom_is_btc",
+   "fieldtype": "Check",
+   "label": "Is BTC",
+   "insert_after": "company",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "doctype": "Custom Field",
+   "dt": "Sales Order",
+   "module": null,
+   "owner": "Administrator",
+   "name": "Sales Order-custom_zone",
+   "fieldname": "custom_zone",
+   "fieldtype": "Link",
+   "options": "Internal Zone",
+   "label": "Zone",
+   "insert_after": "custom_is_btc",
+   "depends_on": null,
+   "link_filters": "[[\"Internal Zone\",\"is_active\",\"=\",1]]",
+   "description": "Required when the order contains the BTC item."
+  },
+  {
+   "doctype": "Custom Field",
+   "dt": "Sales Order",
+   "module": null,
+   "owner": "Administrator",
+   "name": "Sales Order-custom_reporting_bucket",
+   "fieldname": "custom_reporting_bucket",
+   "fieldtype": "Select",
+   "label": "Reporting Bucket",
+   "insert_after": "custom_zone",
+   "depends_on": null,
+   "options": "\nCash Mgmt\nTactical Trade \u2013 Puts\nYield Generation \u2013 Call",
+   "description": "Required when the order contains the BTC item."
+  }
+ ],
+ "custom_perms": [],
+ "doctype": "Sales Order",
+ "links": [],
+ "property_setters": [],
+ "sync_on_migrate": 1
+}

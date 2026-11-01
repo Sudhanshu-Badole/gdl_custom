@@ -1,0 +1,61 @@
+{
+ "actions": [],
+ "creation": "2026-10-29 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "previous_expiry",
+  "new_expiry",
+  "extended_on",
+  "extended_by",
+  "reason"
+ ],
+ "fields": [
+  {
+   "fieldname": "previous_expiry",
+   "fieldtype": "Date",
+   "label": "Previous Expiry",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "new_expiry",
+   "fieldtype": "Date",
+   "label": "New Expiry",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "extended_on",
+   "fieldtype": "Datetime",
+   "label": "Extended On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "extended_by",
+   "fieldtype": "Link",
+   "label": "Extended By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "reason",
+   "fieldtype": "Small Text",
+   "label": "Reason",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-10-29 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Gdl Custom App",
+ "name": "BTC Restriction Extension",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "istable": 1
+}

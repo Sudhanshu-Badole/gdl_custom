@@ -51,6 +51,7 @@ def create_fee_issue(doc, method=None):
 			"posting_time": doc.posting_time,
 			"set_posting_time": 1,
 			"custom_fee_charge_for": doc.name,
+			"business_line": doc.get("business_line"),
 			"remarks": _("Transfer fee for {0}").format(doc.name),
 		}
 	)
@@ -66,6 +67,7 @@ def create_fee_issue(doc, method=None):
 				"uom": row.uom,
 				"conversion_factor": row.conversion_factor or 1,
 				"expense_account": settings.fee_expense_account,
+				"business_line": row.get("business_line") or doc.get("business_line"),
 				"zone": zone,
 				"custodian": row.get("custodian"),
 				"custom_issue_fee_rate": flt(row.custom_fee_rate),

@@ -1,0 +1,312 @@
+{
+ "actions": [],
+ "creation": "2026-10-28 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "company",
+  "posting_date",
+  "posting_time",
+  "posting_datetime",
+  "item_code",
+  "warehouse",
+  "zone",
+  "cost_center",
+  "wallet",
+  "transaction_type",
+  "transaction_doctype",
+  "transaction_name",
+  "transaction_detail_reference",
+  "source_key",
+  "direction",
+  "qty_in",
+  "qty_out",
+  "signed_qty",
+  "usd_rate",
+  "usd_incoming_value",
+  "usd_outgoing_value",
+  "usd_value_change",
+  "usd_balance_qty",
+  "usd_balance_value",
+  "usd_moving_average_rate",
+  "market_usd_rate",
+  "usd_market_value",
+  "usd_market_difference",
+  "btn_exchange_rate",
+  "btn_value",
+  "is_cancelled",
+  "reversal_reference",
+  "last_recalculated_on"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "posting_date",
+   "fieldtype": "Date",
+   "label": "Posting Date",
+   "reqd": 1,
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "posting_time",
+   "fieldtype": "Time",
+   "label": "Posting Time",
+   "reqd": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "posting_datetime",
+   "fieldtype": "Datetime",
+   "label": "Posting Datetime",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "item_code",
+   "fieldtype": "Link",
+   "label": "Item Code",
+   "options": "Item",
+   "reqd": 1,
+   "read_only": 1,
+   "in_standard_filter": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "warehouse",
+   "fieldtype": "Link",
+   "label": "Warehouse",
+   "options": "Warehouse",
+   "read_only": 1
+  },
+  {
+   "fieldname": "zone",
+   "fieldtype": "Link",
+   "label": "Zone",
+   "options": "Internal Zone",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cost_center",
+   "fieldtype": "Link",
+   "label": "Cost Center",
+   "options": "Cost Center",
+   "read_only": 1
+  },
+  {
+   "fieldname": "wallet",
+   "fieldtype": "Link",
+   "label": "Wallet",
+   "options": "BTC Wallet",
+   "read_only": 1
+  },
+  {
+   "fieldname": "transaction_type",
+   "fieldtype": "Data",
+   "label": "Transaction Type",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "transaction_doctype",
+   "fieldtype": "Link",
+   "label": "Transaction DocType",
+   "options": "DocType",
+   "reqd": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "transaction_name",
+   "fieldtype": "Dynamic Link",
+   "label": "Transaction Name",
+   "options": "transaction_doctype",
+   "reqd": 1,
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "transaction_detail_reference",
+   "fieldtype": "Data",
+   "label": "Transaction Detail Reference",
+   "read_only": 1
+  },
+  {
+   "fieldname": "source_key",
+   "fieldtype": "Data",
+   "label": "Source Key",
+   "unique": 1,
+   "read_only": 1,
+   "description": "doctype|name|detail - guarantees one ledger row per source row."
+  },
+  {
+   "fieldname": "direction",
+   "fieldtype": "Select",
+   "label": "Direction",
+   "options": "In\nOut",
+   "read_only": 1
+  },
+  {
+   "fieldname": "qty_in",
+   "fieldtype": "Float",
+   "label": "Qty In",
+   "precision": "9",
+   "read_only": 1
+  },
+  {
+   "fieldname": "qty_out",
+   "fieldtype": "Float",
+   "label": "Qty Out",
+   "precision": "9",
+   "read_only": 1
+  },
+  {
+   "fieldname": "signed_qty",
+   "fieldtype": "Float",
+   "label": "Signed Qty",
+   "precision": "9",
+   "read_only": 1
+  },
+  {
+   "fieldname": "usd_rate",
+   "fieldtype": "Currency",
+   "label": "USD Rate",
+   "options": "USD",
+   "precision": "4",
+   "read_only": 1
+  },
+  {
+   "fieldname": "usd_incoming_value",
+   "fieldtype": "Currency",
+   "label": "USD Incoming Value",
+   "options": "USD",
+   "read_only": 1,
+   "precision": "4"
+  },
+  {
+   "fieldname": "usd_outgoing_value",
+   "fieldtype": "Currency",
+   "label": "USD Outgoing Value",
+   "options": "USD",
+   "read_only": 1,
+   "precision": "4"
+  },
+  {
+   "fieldname": "usd_value_change",
+   "fieldtype": "Currency",
+   "label": "USD Value Change",
+   "options": "USD",
+   "read_only": 1,
+   "precision": "4"
+  },
+  {
+   "fieldname": "usd_balance_qty",
+   "fieldtype": "Float",
+   "label": "USD Pool Balance Qty",
+   "precision": "9",
+   "read_only": 1
+  },
+  {
+   "fieldname": "usd_balance_value",
+   "fieldtype": "Currency",
+   "label": "USD Pool Balance Value",
+   "options": "USD",
+   "read_only": 1,
+   "precision": "4"
+  },
+  {
+   "fieldname": "usd_moving_average_rate",
+   "fieldtype": "Currency",
+   "label": "USD Moving Average Rate",
+   "options": "USD",
+   "precision": "4",
+   "read_only": 1
+  },
+  {
+   "fieldname": "market_usd_rate",
+   "fieldtype": "Currency",
+   "label": "Market USD Rate",
+   "options": "USD",
+   "precision": "4",
+   "read_only": 1,
+   "description": "Entered market rate for fee disposals."
+  },
+  {
+   "fieldname": "usd_market_value",
+   "fieldtype": "Currency",
+   "label": "USD Market Value",
+   "options": "USD",
+   "precision": "4",
+   "read_only": 1
+  },
+  {
+   "fieldname": "usd_market_difference",
+   "fieldtype": "Currency",
+   "label": "USD Market - Cost Difference",
+   "options": "USD",
+   "precision": "4",
+   "read_only": 1,
+   "description": "Market value minus moving-average cost; positive = disposal gain."
+  },
+  {
+   "fieldname": "btn_exchange_rate",
+   "fieldtype": "Float",
+   "label": "BTN Exchange Rate (USD\u2192BTN)",
+   "precision": "9",
+   "read_only": 1
+  },
+  {
+   "fieldname": "btn_value",
+   "fieldtype": "Currency",
+   "label": "BTN Value",
+   "read_only": 1,
+   "precision": "4"
+  },
+  {
+   "fieldname": "is_cancelled",
+   "fieldtype": "Check",
+   "label": "Is Cancelled",
+   "read_only": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "reversal_reference",
+   "fieldtype": "Data",
+   "label": "Cancelled By / Reversal Reference",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_recalculated_on",
+   "fieldtype": "Datetime",
+   "label": "Last Recalculated On",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-10-28 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Gdl Custom App",
+ "name": "BTC USD Valuation Ledger",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "role": "System Manager"
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "in_create": 1,
+ "read_only": 1
+}

@@ -6,14 +6,20 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "btc_tracking_section",
   "btc_item",
   "btc_warehouse",
   "column_break_vnyv",
   "enable_btc_rules",
   "require_zonecustodian_change_on_transfer",
+  "btc_tracking_section",
   "fee_section",
-  "fee_expense_account"
+  "fee_expense_account",
+  "usd_valuation_section",
+  "mining_income_account",
+  "premium_income_account",
+  "put_exercised_account",
+  "column_break_usd",
+  "usd_pool_note"
  ],
  "fields": [
   {
@@ -63,6 +69,46 @@
    "label": "Fee Expense Account",
    "link_filters": "[[\"Account\",\"is_group\",\"=\",0]]",
    "options": "Account"
+  },
+  {
+   "fieldname": "usd_valuation_section",
+   "fieldtype": "Section Break",
+   "label": "BTC Receipt Accounting & USD Valuation"
+  },
+  {
+   "fieldname": "mining_income_account",
+   "fieldtype": "Link",
+   "label": "Mining Income Account",
+   "options": "Account",
+   "link_filters": "[[\"Account\",\"is_group\",\"=\",0]]",
+   "description": "Credited by Mining receipts (Stock Entry Type: Mining)."
+  },
+  {
+   "fieldname": "premium_income_account",
+   "fieldtype": "Link",
+   "label": "Premium Income Account",
+   "options": "Account",
+   "link_filters": "[[\"Account\",\"is_group\",\"=\",0]]",
+   "description": "Credited by Premium Received receipts."
+  },
+  {
+   "fieldname": "put_exercised_account",
+   "fieldtype": "Link",
+   "label": "Put Exercised Account",
+   "options": "Account",
+   "link_filters": "[[\"Account\",\"is_group\",\"=\",0]]",
+   "description": "Credited by Put Exercised receipts."
+  },
+  {
+   "fieldname": "column_break_usd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "usd_pool_note",
+   "fieldtype": "Small Text",
+   "label": "USD Valuation Pool (assumption)",
+   "read_only": 1,
+   "default": "APPROVED ASSUMPTION: one global USD moving-average pool per BTC item. Zone and wallet are quantity dimensions only."
   }
  ],
  "grid_page_length": 50,
