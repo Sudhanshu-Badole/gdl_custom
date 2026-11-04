@@ -1,0 +1,300 @@
+{
+ "app": "gdl_custom_app",
+ "charts": [],
+ "content": "[{\"id\": \"hdr\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>BTC Inventory</b></span>\", \"col\": 12}}, {\"id\": \"c0\", \"type\": \"card\", \"data\": {\"card_name\": \"Transactions\", \"col\": 4}}, {\"id\": \"c1\", \"type\": \"card\", \"data\": {\"card_name\": \"Masters\", \"col\": 4}}, {\"id\": \"c2\", \"type\": \"card\", \"data\": {\"card_name\": \"Restrictions\", \"col\": 4}}, {\"id\": \"c3\", \"type\": \"card\", \"data\": {\"card_name\": \"Valuation\", \"col\": 4}}, {\"id\": \"c4\", \"type\": \"card\", \"data\": {\"card_name\": \"Reports\", \"col\": 4}}, {\"id\": \"c5\", \"type\": \"card\", \"data\": {\"card_name\": \"Settings\", \"col\": 4}}]",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "coins",
+ "idx": 0,
+ "is_hidden": 0,
+ "label": "BTC Inventory",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Transactions",
+   "link_count": 5,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Stock Entry",
+   "link_count": 0,
+   "link_to": "Stock Entry",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link",
+   "dependencies": ""
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Purchase Receipt",
+   "link_count": 0,
+   "link_to": "Purchase Receipt",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link",
+   "dependencies": ""
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Delivery Note",
+   "link_count": 0,
+   "link_to": "Delivery Note",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link",
+   "dependencies": ""
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Sales Invoice",
+   "link_count": 0,
+   "link_to": "Sales Invoice",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link",
+   "dependencies": ""
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Stock Reconciliation",
+   "link_count": 0,
+   "link_to": "Stock Reconciliation",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link",
+   "dependencies": ""
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Masters",
+   "link_count": 3,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "BTC Wallet",
+   "link_count": 0,
+   "link_to": "BTC Wallet",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link",
+   "dependencies": ""
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "BTC Custodian",
+   "link_count": 0,
+   "link_to": "BTC Custodian",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link",
+   "dependencies": ""
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Internal Zone",
+   "link_count": 0,
+   "link_to": "Internal Zone",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link",
+   "dependencies": ""
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Restrictions",
+   "link_count": 1,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "BTC Restriction",
+   "link_count": 0,
+   "link_to": "BTC Restriction",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link",
+   "dependencies": ""
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Valuation",
+   "link_count": 1,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "BTC USD Valuation Ledger",
+   "link_count": 0,
+   "link_to": "BTC USD Valuation Ledger",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link",
+   "dependencies": ""
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Reports",
+   "link_count": 7,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "BTC Inventory Balance",
+   "link_count": 0,
+   "link_to": "BTC Inventory Balance",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link",
+   "dependencies": ""
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "BTC Movement History",
+   "link_count": 0,
+   "link_to": "BTC Movement History",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link",
+   "dependencies": ""
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "BTC Reconciliation",
+   "link_count": 0,
+   "link_to": "BTC Reconciliation",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link",
+   "dependencies": ""
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "BTC Restricted Holdings",
+   "link_count": 0,
+   "link_to": "BTC Restricted Holdings",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link",
+   "dependencies": ""
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "BTC USD Valuation",
+   "link_count": 0,
+   "link_to": "BTC USD Valuation",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link",
+   "dependencies": ""
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "BTC Disposal Gain Loss",
+   "link_count": 0,
+   "link_to": "BTC Disposal Gain Loss",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link",
+   "dependencies": ""
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "BTC Receipt Type",
+   "link_count": 0,
+   "link_to": "BTC Receipt Type",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link",
+   "dependencies": ""
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Settings",
+   "link_count": 1,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "GDL Setting",
+   "link_count": 0,
+   "link_to": "GDL Setting",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link",
+   "dependencies": ""
+  }
+ ],
+ "module": "Gdl Custom App",
+ "name": "BTC Inventory",
+ "number_cards": [],
+ "public": 1,
+ "quick_lists": [],
+ "roles": [],
+ "sequence_id": 1,
+ "shortcuts": [
+  {
+   "label": "Stock Entry",
+   "link_to": "Stock Entry",
+   "type": "DocType",
+   "doc_view": "List"
+  },
+  {
+   "label": "BTC Wallet",
+   "link_to": "BTC Wallet",
+   "type": "DocType",
+   "doc_view": "List"
+  },
+  {
+   "label": "BTC Inventory Balance",
+   "link_to": "BTC Inventory Balance",
+   "type": "Report",
+   "doc_view": ""
+  },
+  {
+   "label": "BTC Movement History",
+   "link_to": "BTC Movement History",
+   "type": "Report",
+   "doc_view": ""
+  }
+ ],
+ "title": "BTC Inventory",
+ "creation": "2026-11-04 09:00:00.000000",
+ "modified": "2026-11-04 09:00:00.000000",
+ "modified_by": "Administrator",
+ "owner": "Administrator"
+}
