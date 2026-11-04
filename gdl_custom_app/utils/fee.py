@@ -69,7 +69,7 @@ def create_fee_issue(doc, method=None):
 				"expense_account": settings.fee_expense_account,
 				"business_line": row.get("business_line") or doc.get("business_line"),
 				"zone": zone,
-				"custodian": row.get("custodian"),
+				"wallet": row.get("wallet"),
 				"custom_issue_fee_rate": flt(row.custom_fee_rate),
 				"cost_center": resolve_cost_center({"cc_zone": zone, "cc_warehouse": row.s_warehouse})
 				or row.cost_center,

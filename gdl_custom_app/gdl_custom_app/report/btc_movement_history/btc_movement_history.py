@@ -11,7 +11,7 @@ def execute(filters=None):
 	item = filters.item_code or frappe.db.get_single_value("GDL Setting", "btc_item")
 	cond, params = "", {"company": filters.company, "item": item,
 		"from_date": filters.from_date or "1900-01-01", "to_date": filters.to_date or nowdate()}
-	for f, c in (("warehouse", "warehouse"), ("zone", "zone"), ("wallet", "custodian")):
+	for f, c in (("warehouse", "warehouse"), ("zone", "zone"), ("wallet", "wallet")):
 		if filters.get(f):
 			cond += f" and sle.{c} = %({f})s"
 			params[f] = filters[f]
@@ -20,8 +20,8 @@ def execute(filters=None):
 	rows = frappe.db.sql(
 		f"""select * from (
 			select sle.posting_date, sle.posting_datetime, sle.creation, sle.voucher_type, sle.voucher_no, sle.warehouse, sle.zone,
-			sle.custodian as wallet, sle.actual_qty, sle.company,
-			sum(sle.actual_qty) over (partition by sle.warehouse, sle.zone, sle.custodian
+			sle.wallet, sle.actual_qty, sle.company,
+			sum(sle.actual_qty) over (partition by sle.warehouse, sle.zone, sle.wallet
 				order by sle.posting_datetime, sle.creation) as wallet_balance,
 			coalesce(se.stock_entry_type, sle.voucher_type) as transaction_type,
 			coalesce(led.cost_center, sed.cost_center) as cost_center,

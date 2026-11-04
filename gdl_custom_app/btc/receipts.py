@@ -73,7 +73,7 @@ def validate_receipt(doc, method=None):
 			frappe.throw(_("Row #{0}: BTC quantity must be greater than zero.").format(row.idx))
 		for zone_field in ("zone", "to_zone"):
 			validate_zone_active(row, row.get(zone_field))
-		for wallet_field in ("custodian", "to_custodian"):
+		for wallet_field in ("wallet", "to_wallet"):
 			validate_wallet(row, row.get(wallet_field), doc.company)
 
 
@@ -104,7 +104,7 @@ def validate_purchase_receipt(doc, method=None):
 		if row.get("purchase_order") and not row.get("zone"):
 			row.zone = frappe.db.get_value("Purchase Order", row.purchase_order, "custom_zone")
 		validate_zone_active(row, row.get("zone"))
-		validate_wallet(row, row.get("custodian"), doc.company)
+		validate_wallet(row, row.get("wallet"), doc.company)
 
 
 def usd_valuation_currency():
@@ -155,7 +155,7 @@ def post_usd_ledger(doc, method=None):
 				doc.posting_date, "for_buying" if sign > 0 else None, doc.company
 			)
 			zone, wallet, warehouse = (
-				(row.to_zone, row.to_custodian, row.t_warehouse) if sign > 0 else (row.zone, row.custodian, row.s_warehouse)
+				(row.to_zone, row.to_wallet, row.t_warehouse) if sign > 0 else (row.zone, row.wallet, row.s_warehouse)
 			)
 			transaction_type = doc.stock_entry_type
 			market_rate = flt(row.get("custom_issue_fee_rate")) if sign < 0 else 0
@@ -165,7 +165,7 @@ def post_usd_ledger(doc, method=None):
 			price = flt(row.get("net_rate") or row.rate)
 			usd_rate = 0 if is_sale else price
 			btn_rate = flt(doc.conversion_rate)
-			zone, wallet, warehouse = row.zone, row.custodian, row.warehouse
+			zone, wallet, warehouse = row.zone, row.wallet, row.warehouse
 			transaction_type = "Sale" if is_sale else "Purchase"
 			market_rate = price if is_sale else 0  # selling price -> proceeds, so gain = proceeds - cost
 
@@ -233,7 +233,7 @@ def validate_delivery_note(doc, method=None):
 		if not row.get("zone") and row.get("against_sales_order"):
 			row.zone = frappe.db.get_value("Sales Order", row.against_sales_order, "custom_zone")
 		validate_zone_active(row, row.get("zone"))
-		validate_wallet(row, row.get("custodian"), doc.company)
+		validate_wallet(row, row.get("wallet"), doc.company)
 
 
 def validate_delivery_availability(doc, method=None):
@@ -246,7 +246,7 @@ def validate_delivery_availability(doc, method=None):
 	requests = {}
 	for row in doc.items:
 		if is_btc_row(settings, row):
-			key = (row.zone, row.custodian)
+			key = (row.zone, row.wallet)
 			requests[key] = requests.get(key, 0) + flt(row.stock_qty)
 	if requests:
 		validate_available(settings.btc_item, settings.btc_warehouse, requests, doc.posting_date, doc.name)

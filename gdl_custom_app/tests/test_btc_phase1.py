@@ -107,8 +107,8 @@ class TestReceipts(BTCPhase1Base):
 			u.make_receipt(usd_rate=0)
 
 	def test_b07_two_wallet_rows(self):
-		u.make_receipt(rows=[{"qty": 0.4, "to_zone": u.ZONE_A, "to_custodian": u.WALLET_A},
-			{"qty": 0.6, "to_zone": u.ZONE_A, "to_custodian": u.WALLET_B}])
+		u.make_receipt(rows=[{"qty": 0.4, "to_zone": u.ZONE_A, "to_wallet": u.WALLET_A},
+			{"qty": 0.6, "to_zone": u.ZONE_A, "to_wallet": u.WALLET_B}])
 		self.assertClose(u.wallet_balance(u.WALLET_A), 0.4)
 		self.assertClose(u.wallet_balance(u.WALLET_B), 0.6)
 		self.assertEqual(len(u.ledger()), 2)
@@ -292,7 +292,7 @@ class TestPurchase(BTCPhase1Base):
 		pr = make_purchase_receipt(po.name)
 		pr.update({"posting_date": date, "set_posting_time": 1, "conversion_rate": 90})
 		pr.items[0].qty = qty
-		pr.items[0].custodian = u.WALLET_A
+		pr.items[0].wallet = u.WALLET_A
 		pr.insert()
 		return pr
 

@@ -10,7 +10,7 @@
   "btc_warehouse",
   "column_break_vnyv",
   "enable_btc_rules",
-  "require_zonecustodian_change_on_transfer",
+  "require_zonewallet_change_on_transfer",
   "btc_tracking_section",
   "fee_section",
   "fee_expense_account",
@@ -47,10 +47,10 @@
   },
   {
    "default": "0",
-   "description": "Rejects a BTC transfer where neither zone nor custodian changed.",
-   "fieldname": "require_zonecustodian_change_on_transfer",
+   "description": "Rejects a BTC transfer where neither zone nor wallet changed.",
+   "fieldname": "require_zonewallet_change_on_transfer",
    "fieldtype": "Check",
-   "label": "Require Zone/Custodian Change on Transfer"
+   "label": "Require Zone/Wallet Change on Transfer"
   },
   {
    "fieldname": "btc_tracking_section",

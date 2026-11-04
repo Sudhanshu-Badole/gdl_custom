@@ -81,7 +81,7 @@ def make_receipt(entry_type="Mining", qty=0.5, usd_rate=50000, zone=ZONE_A, wall
 	se = frappe.new_doc("Stock Entry")
 	se.update({"stock_entry_type": entry_type, "purpose": "Material Receipt", "company": COMPANY,
 		"posting_date": date, "posting_time": time, "set_posting_time": 1, "business_line": BUSINESS_LINE})
-	for r in rows or [{"qty": qty, "to_zone": zone, "to_custodian": wallet}]:
+	for r in rows or [{"qty": qty, "to_zone": zone, "to_wallet": wallet}]:
 		se.append("items", {"item_code": ITEM, "t_warehouse": WAREHOUSE, "uom": "BTC",
 			"stock_uom": "BTC", "conversion_factor": 1, "business_line": BUSINESS_LINE, "custom_usd_rate": usd_rate, **row_extra, **r})
 	se.insert()
@@ -95,7 +95,7 @@ def make_issue(qty, zone=ZONE_A, wallet=WALLET_A, date=D3, time="10:00:00", subm
 	se.update({"stock_entry_type": "Material Issue", "purpose": "Material Issue", "company": COMPANY,
 		"posting_date": date, "posting_time": time, "set_posting_time": 1, "business_line": BUSINESS_LINE})
 	se.append("items", {"item_code": ITEM, "s_warehouse": WAREHOUSE, "qty": qty, "uom": "BTC",
-		"stock_uom": "BTC", "conversion_factor": 1, "business_line": BUSINESS_LINE, "zone": zone, "custodian": wallet, "expense_account": DIFFERENCE_ACCOUNT})
+		"stock_uom": "BTC", "conversion_factor": 1, "business_line": BUSINESS_LINE, "zone": zone, "wallet": wallet, "expense_account": DIFFERENCE_ACCOUNT})
 	se.insert()
 	if submit:
 		se.submit()
@@ -108,8 +108,8 @@ def make_transfer(qty, from_zone=ZONE_A, from_wallet=WALLET_A, to_zone=ZONE_A, t
 	se.update({"stock_entry_type": "Material Transfer", "purpose": "Material Transfer", "company": COMPANY,
 		"posting_date": date, "posting_time": time, "set_posting_time": 1, "business_line": BUSINESS_LINE})
 	se.append("items", {"item_code": ITEM, "s_warehouse": WAREHOUSE, "t_warehouse": WAREHOUSE, "qty": qty,
-		"uom": "BTC", "stock_uom": "BTC", "conversion_factor": 1, "business_line": BUSINESS_LINE, "zone": from_zone, "custodian": from_wallet,
-		"to_zone": to_zone, "to_custodian": to_wallet, "expense_account": DIFFERENCE_ACCOUNT,
+		"uom": "BTC", "stock_uom": "BTC", "conversion_factor": 1, "business_line": BUSINESS_LINE, "zone": from_zone, "wallet": from_wallet,
+		"to_zone": to_zone, "to_wallet": to_wallet, "expense_account": DIFFERENCE_ACCOUNT,
 		"custom_fee_qty": fee_qty, "custom_fee_rate": fee_rate, "custom_transfer_status": status, "custom_expiry_date": expiry})
 	se.insert()
 	if submit:
@@ -133,7 +133,7 @@ def wallet_balance(wallet, zone=None):
 	cond = " and zone=%s" if zone else ""
 	return flt(frappe.db.sql(
 		"select coalesce(sum(actual_qty),0) from `tabStock Ledger Entry` where item_code=%s and warehouse=%s "
-		f"and custodian=%s and is_cancelled=0{cond}", (ITEM, WAREHOUSE, wallet) + ((zone,) if zone else ()))[0][0], 9)
+		f"and wallet=%s and is_cancelled=0{cond}", (ITEM, WAREHOUSE, wallet) + ((zone,) if zone else ()))[0][0], 9)
 
 
 def make_restriction(qty, status="Pledged", expiry=D4, start=D1, wallet=WALLET_A, zone=ZONE_A):
@@ -179,7 +179,7 @@ def make_delivery(so, rows, date=D3, submit=True, rate_btn=91):
 	for qty, wallet in rows:
 		row = dn.append("items", template.as_dict())
 		row.name = None
-		row.update({"qty": qty, "custodian": wallet, "zone": None, "expense_account": DIFFERENCE_ACCOUNT,
+		row.update({"qty": qty, "wallet": wallet, "zone": None, "expense_account": DIFFERENCE_ACCOUNT,
 			"business_line": BUSINESS_LINE})
 	dn.insert()
 	if submit:

@@ -24,20 +24,20 @@ TAGGED_DOCTYPES = {
 	"Stock Reconciliation",
 }
 
-# Stock Entry rows carry a source tag (zone/custodian) and a target tag
-# (to_zone/to_custodian); every other doctype only has the one tag.
+# Stock Entry rows carry a source tag (zone/wallet) and a target tag
+# (to_zone/to_wallet); every other doctype only has the one tag.
 FIELD_LABELS = {
 	"zone": "Source Zone",
 	"to_zone": "Target Zone",
-	"custodian": "Source Custodian",
-	"to_custodian": "Target Custodian",
+	"wallet": "Source Wallet",
+	"to_wallet": "Target Wallet",
 }
 
 REQUIRED_TAGS = {
-	"in": ("to_zone", "to_custodian"),
-	"out": ("zone", "custodian"),
-	"transfer": ("zone", "to_zone", "custodian", "to_custodian"),
-	"single": ("zone", "custodian"),
+	"in": ("to_zone", "to_wallet"),
+	"out": ("zone", "wallet"),
+	"transfer": ("zone", "to_zone", "wallet", "to_wallet"),
+	"single": ("zone", "wallet"),
 }
 
 
@@ -91,7 +91,7 @@ def _row_context(parent_doctype, purpose, row):
 
 	kind is in/out/transfer for Stock Entry (decided by which warehouses the
 	row has, not by purpose, so Repack/Manufacture rows work too) and single
-	for every doctype that has just one zone/custodian tag. The cost center
+	for every doctype that has just one zone/wallet tag. The cost center
 	follows the target side of an in/transfer row and the source side of an
 	out row.
 	"""
@@ -142,6 +142,6 @@ def _validate_btc_row(settings, row, ctx):
 		if not row.get(fieldname):
 			frappe.throw(_("Row #{0}: {1} is mandatory for BTC.").format(row.idx, FIELD_LABELS[fieldname]))
 
-	if ctx["kind"] == "transfer" and settings.require_zonecustodian_change_on_transfer:
-		if row.zone == row.to_zone and row.custodian == row.to_custodian:
-			frappe.throw(_("Row #{0}: A BTC transfer must change the Zone or the Custodian.").format(row.idx))
+	if ctx["kind"] == "transfer" and settings.require_zonewallet_change_on_transfer:
+		if row.zone == row.to_zone and row.wallet == row.to_wallet:
+			frappe.throw(_("Row #{0}: A BTC transfer must change the Zone or the Wallet.").format(row.idx))

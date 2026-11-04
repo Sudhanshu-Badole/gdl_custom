@@ -86,6 +86,36 @@
    "insert_after": "custom_transfer_status",
    "depends_on": "eval:['Trading','Loan','Pledged'].includes(doc.custom_transfer_status)",
    "mandatory_depends_on": "eval:['Trading','Loan','Pledged'].includes(doc.custom_transfer_status)"
+  },
+  {
+   "doctype": "Custom Field",
+   "dt": "Stock Entry Detail",
+   "fieldname": "custom_wallet_custodian",
+   "module": null,
+   "owner": "Administrator",
+   "name": "Stock Entry Detail-custom_wallet_custodian",
+   "fieldtype": "Link",
+   "options": "BTC Custodian",
+   "label": "Source Wallet Custodian",
+   "insert_after": "wallet",
+   "fetch_from": "wallet.custodian",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "doctype": "Custom Field",
+   "dt": "Stock Entry Detail",
+   "fieldname": "custom_to_wallet_custodian",
+   "module": null,
+   "owner": "Administrator",
+   "name": "Stock Entry Detail-custom_to_wallet_custodian",
+   "fieldtype": "Link",
+   "options": "BTC Custodian",
+   "label": "Target Wallet Custodian",
+   "insert_after": "to_wallet",
+   "fetch_from": "to_wallet.custodian",
+   "read_only": 1,
+   "no_copy": 1
   }
  ],
  "custom_perms": [],

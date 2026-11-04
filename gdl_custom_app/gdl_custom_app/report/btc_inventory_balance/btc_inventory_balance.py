@@ -11,18 +11,18 @@ def execute(filters=None):
 	as_of = getdate(filters.posting_date or nowdate())
 	item = filters.item_code or frappe.db.get_single_value("GDL Setting", "btc_item")
 	cond, params = "", {"company": filters.company, "item": item, "as_of": as_of}
-	for f, c in (("warehouse", "warehouse"), ("zone", "zone"), ("wallet", "custodian")):
+	for f, c in (("warehouse", "warehouse"), ("zone", "zone"), ("wallet", "wallet")):
 		if filters.get(f):
 			cond += f" and {c} = %({f})s"
 			params[f] = filters[f]
 
 	rows = frappe.db.sql(
-		f"""select warehouse, zone, custodian as wallet, sum(actual_qty) as qty,
+		f"""select warehouse, zone, wallet, sum(actual_qty) as qty,
 		sum(stock_value_difference) as btn_value, max(posting_date) as last_date
 		from `tabStock Ledger Entry`
 		where company=%(company)s and item_code=%(item)s and is_cancelled=0 and posting_date <= %(as_of)s{cond}
-		group by warehouse, zone, custodian having sum(actual_qty) != 0 or max(posting_date) is not null
-		order by warehouse, zone, custodian""",
+		group by warehouse, zone, wallet having sum(actual_qty) != 0 or max(posting_date) is not null
+		order by warehouse, zone, wallet""",
 		params, as_dict=True,
 	)
 	_q, _v, avg = usd_valuation.get_usd_balance(filters.company, item, f"{as_of} 23:59:59")

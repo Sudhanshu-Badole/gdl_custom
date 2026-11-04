@@ -18,7 +18,7 @@ def execute(filters=None):
 	today = getdate(nowdate())
 	for r in rows:
 		r.restricted_now = r.remaining_qty if r.state == "Active" and r.start_date <= today <= r.expiry_date else 0
-		balance = flt(frappe.db.sql("select coalesce(sum(actual_qty),0) from `tabStock Ledger Entry` where item_code=%s and warehouse=%s and zone=%s and custodian=%s and is_cancelled=0",
+		balance = flt(frappe.db.sql("select coalesce(sum(actual_qty),0) from `tabStock Ledger Entry` where item_code=%s and warehouse=%s and zone=%s and wallet=%s and is_cancelled=0",
 			(r.item_code, r.warehouse, r.zone, r.wallet))[0][0], 9)
 		r.available = flt(balance - get_restricted_qty(r.item_code, r.warehouse, r.zone, r.wallet, today), 9)
 		releases = frappe.get_all("BTC Restriction Release", filters={"parent": r.name}, fields=["kind", "qty", "released_by", "released_on"], order_by="released_on")

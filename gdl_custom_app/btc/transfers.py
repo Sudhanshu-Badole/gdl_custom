@@ -31,7 +31,7 @@ def validate_transfer(doc, method=None):
 		elif row.get("custom_expiry_date"):
 			frappe.throw(_("Row #{0}: Expiry Date applies only to Trading, Loan or Pledged.").format(row.idx))
 
-		if row.s_warehouse and row.t_warehouse and row.zone == row.to_zone and row.custodian == row.to_custodian:
+		if row.s_warehouse and row.t_warehouse and row.zone == row.to_zone and row.wallet == row.to_wallet:
 			frappe.throw(_("Row #{0}: source and destination wallet/zone are the same.").format(row.idx))
 
 
@@ -40,7 +40,7 @@ def validate_availability(doc, method=None):
 	requests = {}
 	for row in _btc_rows(doc):
 		if row.s_warehouse:
-			key = (row.zone, row.custodian)
+			key = (row.zone, row.wallet)
 			requests[key] = requests.get(key, 0) + flt(row.transfer_qty or row.qty) + flt(row.get("custom_fee_qty"))
 	if requests:
 		settings = get_settings()
@@ -61,7 +61,7 @@ def create_restrictions(doc, method=None):
 				"item_code": row.item_code,
 				"warehouse": row.t_warehouse,
 				"zone": row.to_zone,
-				"wallet": row.to_custodian,
+				"wallet": row.to_wallet,
 				"restriction_type": status,
 				"qty": flt(row.transfer_qty or row.qty),
 				"start_date": doc.posting_date,

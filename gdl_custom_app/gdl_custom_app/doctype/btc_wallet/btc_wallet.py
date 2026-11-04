@@ -12,7 +12,7 @@ class BTCWallet(Document):
 
 	def validate_no_balance(self):
 		bal = frappe.db.sql(
-			"select coalesce(sum(actual_qty),0) from `tabStock Ledger Entry` where custodian=%s and is_cancelled=0",
+			"select coalesce(sum(actual_qty),0) from `tabStock Ledger Entry` where wallet=%s and is_cancelled=0",
 			self.name,
 		)[0][0]
 		if bal:

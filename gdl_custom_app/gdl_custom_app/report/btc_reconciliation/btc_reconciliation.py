@@ -12,7 +12,7 @@ def execute(filters=None):
 	item = filters.item_code or frappe.db.get_single_value("GDL Setting", "btc_item")
 	sle = frappe.db.sql(
 		"""select warehouse, sum(actual_qty) as sle_qty, sum(stock_value_difference) as btn_value,
-		sum(if(ifnull(zone,'')!='' and ifnull(custodian,'')!='', actual_qty, 0)) as wallet_qty
+		sum(if(ifnull(zone,'')!='' and ifnull(wallet,'')!='', actual_qty, 0)) as wallet_qty
 		from `tabStock Ledger Entry` where company=%s and item_code=%s and is_cancelled=0 group by warehouse""",
 		(filters.company, item), as_dict=True,
 	)

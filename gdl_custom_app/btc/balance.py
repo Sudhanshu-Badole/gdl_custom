@@ -1,4 +1,4 @@
-"""Wallet balances (from the Stock Ledger's Zone/Custodian dimensions) and restriction-aware availability."""
+"""Wallet balances (from the Stock Ledger's Zone/Wallet dimensions) and restriction-aware availability."""
 
 import frappe
 from frappe import _
@@ -13,7 +13,7 @@ def get_wallet_balance(item_code, warehouse, zone, wallet, as_of_date=None):
 	return flt(
 		frappe.db.sql(
 			f"""select coalesce(sum(actual_qty), 0) from `tabStock Ledger Entry`
-			where item_code=%s and warehouse=%s and zone=%s and custodian=%s and is_cancelled=0{extra}""",
+			where item_code=%s and warehouse=%s and zone=%s and wallet=%s and is_cancelled=0{extra}""",
 			params,
 		)[0][0],
 		9,

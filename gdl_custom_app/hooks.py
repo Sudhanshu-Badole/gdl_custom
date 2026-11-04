@@ -317,10 +317,10 @@ doc_events = {
 
 override_doctype_class = {"Asset": "gdl_custom_app.overrides.asset.CustomAsset"}
 
-# Zone / Custodian are Inventory Dimensions (they generate the zone/custodian
+# Zone / Wallet are Inventory Dimensions (they generate the zone/wallet
 # fields on every stock doctype); the other fields are plain Custom Fields.
 fixtures = [
-	{"dt": "Inventory Dimension", "filters": [["name", "in", ["Zone", "Custodian"]]]},
+	{"dt": "Inventory Dimension", "filters": [["name", "in", ["Zone", "Wallet"]]]},
 	{
 		"dt": "Custom Field",
 		"filters": [
