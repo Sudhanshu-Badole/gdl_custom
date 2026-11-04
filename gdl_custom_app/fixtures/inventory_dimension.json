@@ -1,0 +1,40 @@
+[
+ {
+  "apply_to_all_doctypes": 1,
+  "condition": null,
+  "dimension_name": "Zone",
+  "docstatus": 0,
+  "doctype": "Inventory Dimension",
+  "document_type": null,
+  "fetch_from_parent": null,
+  "istable": 0,
+  "mandatory_depends_on_backend": null,
+  "modified": "2026-10-18 22:52:46.966803",
+  "name": "Zone",
+  "reference_document": "Internal Zone",
+  "reqd": 0,
+  "source_fieldname": "zone",
+  "target_fieldname": "zone",
+  "type_of_transaction": "Both",
+  "validate_negative_stock": 1
+ },
+ {
+  "apply_to_all_doctypes": 1,
+  "condition": null,
+  "dimension_name": "Wallet",
+  "docstatus": 0,
+  "doctype": "Inventory Dimension",
+  "document_type": null,
+  "fetch_from_parent": null,
+  "istable": 0,
+  "mandatory_depends_on_backend": null,
+  "modified": "2026-10-24 14:20:04.774204",
+  "name": "Wallet",
+  "reference_document": "BTC Wallet",
+  "reqd": 0,
+  "source_fieldname": "wallet",
+  "target_fieldname": "wallet",
+  "type_of_transaction": "Both",
+  "validate_negative_stock": 1
+ }
+]
