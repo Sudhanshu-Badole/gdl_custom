@@ -38,7 +38,7 @@ def execute(filters=None):
 		{"fieldname": "transaction_name", "label": _("Source"), "fieldtype": "Dynamic Link", "width": 160, "options": "transaction_doctype"},
 		{"fieldname": "zone", "label": _("Zone"), "fieldtype": "Link", "width": 120, "options": "Internal Zone"},
 		{"fieldname": "wallet", "label": _("Wallet"), "fieldtype": "Link", "width": 120, "options": "BTC Wallet"},
-		{"fieldname": "qty_out", "label": _("BTC Disposed"), "fieldtype": "Float", "width": 120},
+		{"fieldname": "qty_out", "label": _("BTC Disposed"), "fieldtype": "Float", "precision": 8, "width": 120},
 		{"fieldname": "avg_rate", "label": _("USD Moving Avg"), "fieldtype": "Float", "width": 120},
 		{"fieldname": "market_usd_rate", "label": _("USD Sale/Market Rate"), "fieldtype": "Float", "width": 120},
 		{"fieldname": "usd_cost", "label": _("USD Inventory Cost"), "fieldtype": "Float", "width": 120},

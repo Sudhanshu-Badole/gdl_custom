@@ -9,7 +9,7 @@ from gdl_custom_app.tests.test_btc_phase1 import BTCPhase1Base
 class TestTransferFee(BTCPhase1Base):
 	def setUp(self):
 		super().setUp()
-		u.set_settings(fee_expense_account=u.DIFFERENCE_ACCOUNT)
+		u.set_settings(fee_expense_account=u.DIFFERENCE_ACCOUNT, disposal_gain_loss_account=u.GAIN_LOSS_ACCOUNT)
 
 	def _fee_transfer(self, **kw):
 		u.make_receipt(qty=1, usd_rate=50800, date=u.D1)
@@ -33,13 +33,41 @@ class TestTransferFee(BTCPhase1Base):
 		self.assertEqual((fee.zone, fee.wallet), (u.ZONE_A, u.WALLET_A))  # e04 same source dimensions
 		self.assertEqual(u.pool()[0], 0.999)
 
-	def test_fee_gl_posted_once(self):
-		se = self._fee_transfer()
+	def _fee_gl(self, se):
 		issue = frappe.db.get_value("Stock Entry", se.name, "custom_fee_stock_entry")
-		gl = frappe.get_all("GL Entry", filters={"voucher_no": issue, "is_cancelled": 0}, fields=["account", "debit", "credit"])
-		self.assertEqual(len(gl), 2)
-		self.assertClose(sum(g.debit for g in gl), 0.001 * 50800 * 90)  # BTN at moving-average cost
+		gl = frappe.get_all("GL Entry", filters={"voucher_no": issue, "is_cancelled": 0},
+			fields=["account", "debit", "credit"])
+		return issue, {g.account: flt(g.debit - g.credit, 2) for g in gl}, len(gl)
+
+	def test_fee_gl_market_value_with_disposal_gain(self):
+		# 0.001 BTC fee at market $61,000 x selling rate 91 (D3) = 5,551; cost 0.001 x 50,800 x 90 = 4,572
+		se = self._fee_transfer()
+		_issue, gl, count = self._fee_gl(se)
+		self.assertEqual(count, 3)  # fee debit merged into one line
+		self.assertClose(gl[u.DIFFERENCE_ACCOUNT], 5551.0)
+		self.assertClose(gl[u.STOCK_ACCOUNT], -4572.0)
+		self.assertClose(gl[u.GAIN_LOSS_ACCOUNT], -979.0)
 		self.assertEqual(frappe.get_all("GL Entry", filters={"voucher_no": se.name, "is_cancelled": 0}), [])  # neutral transfer
+
+	def test_fee_gl_market_below_cost_books_loss(self):
+		se = u.make_receipt(qty=1, usd_rate=50800, date=u.D1) and u.make_transfer(0.5, fee_qty=0.001, fee_rate=40000)
+		_issue, gl, _count = self._fee_gl(se)
+		self.assertClose(gl[u.DIFFERENCE_ACCOUNT], 3640.0)  # 0.001 x 40,000 x 91
+		self.assertClose(gl[u.STOCK_ACCOUNT], -4572.0)
+		self.assertClose(gl[u.GAIN_LOSS_ACCOUNT], 932.0)  # loss is a debit
+
+	def test_fee_gl_reversed_on_cancel(self):
+		se = self._fee_transfer()
+		issue, _gl, _count = self._fee_gl(se)
+		se.cancel()
+		gl = frappe.get_all("GL Entry", filters={"voucher_no": issue}, fields=["debit", "credit", "is_cancelled"])
+		self.assertTrue(gl and all(g.is_cancelled for g in gl))
+
+	def test_fee_needs_gain_loss_account(self):
+		u.set_settings(disposal_gain_loss_account=None)
+		u.make_receipt(qty=1, date=u.D1)
+		with self.assertRaises(frappe.ValidationError):
+			u.make_transfer(0.5, fee_qty=0.001, fee_rate=61000)
 
 	def test_e05_fee_pushes_over_balance(self):
 		u.make_receipt(qty=0.5, date=u.D1)
@@ -73,6 +101,12 @@ class TestTransferFee(BTCPhase1Base):
 		se = self._fee_transfer()
 		linked = get_submitted_linked_docs("Stock Entry", se.name).get("docs") or []
 		self.assertEqual([d for d in linked if d.get("doctype") == "Stock Entry"], [])
+
+	def test_qty_over_8_decimals_rejected(self):
+		u.make_receipt(qty=1, date=u.D1)
+		with self.assertRaises(frappe.ValidationError):
+			u.make_transfer(0.123456789)
+		u.make_transfer(0.12345678)  # 8 decimals is fine
 
 	def test_self_transfer_rejected(self):
 		u.make_receipt(qty=1, date=u.D1)

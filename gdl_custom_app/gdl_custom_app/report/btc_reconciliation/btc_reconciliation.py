@@ -37,12 +37,12 @@ def execute(filters=None):
 		rows.append(r)
 	columns = [
 		{"fieldname": "warehouse", "label": _("Warehouse"), "fieldtype": "Link", "width": 160, "options": "Warehouse"},
-		{"fieldname": "sle_qty", "label": _("Stock Ledger Qty"), "fieldtype": "Float", "width": 120},
-		{"fieldname": "bin_qty", "label": _("Bin Qty"), "fieldtype": "Float", "width": 120},
-		{"fieldname": "bin_diff", "label": _("Bin Difference"), "fieldtype": "Float", "width": 120},
-		{"fieldname": "wallet_qty", "label": _("Wallet-level Qty"), "fieldtype": "Float", "width": 120},
-		{"fieldname": "unassigned_qty", "label": _("Unassigned Qty"), "fieldtype": "Float", "width": 120},
-		{"fieldname": "usd_pool_qty", "label": _("USD Pool Qty"), "fieldtype": "Float", "width": 120},
+		{"fieldname": "sle_qty", "label": _("Stock Ledger Qty"), "fieldtype": "Float", "precision": 8, "width": 120},
+		{"fieldname": "bin_qty", "label": _("Bin Qty"), "fieldtype": "Float", "precision": 8, "width": 120},
+		{"fieldname": "bin_diff", "label": _("Bin Difference"), "fieldtype": "Float", "precision": 8, "width": 120},
+		{"fieldname": "wallet_qty", "label": _("Wallet-level Qty"), "fieldtype": "Float", "precision": 8, "width": 120},
+		{"fieldname": "unassigned_qty", "label": _("Unassigned Qty"), "fieldtype": "Float", "precision": 8, "width": 120},
+		{"fieldname": "usd_pool_qty", "label": _("USD Pool Qty"), "fieldtype": "Float", "precision": 8, "width": 120},
 		{"fieldname": "usd_diff", "label": _("USD Pool Difference"), "fieldtype": "Float", "width": 120},
 		{"fieldname": "usd_pool_value", "label": _("USD Pool Value"), "fieldtype": "Float", "width": 120},
 		{"fieldname": "btn_value", "label": _("BTN Stock Value"), "fieldtype": "Float", "width": 120},

@@ -48,11 +48,11 @@ def execute(filters=None):
 		{"fieldname": "zone", "label": _("Zone"), "fieldtype": "Link", "width": 120, "options": "Internal Zone"},
 		{"fieldname": "wallet", "label": _("Wallet"), "fieldtype": "Link", "width": 120, "options": "BTC Wallet"},
 		{"fieldname": "cost_center", "label": _("Cost Center"), "fieldtype": "Link", "width": 160, "options": "Cost Center"},
-		{"fieldname": "qty_in", "label": _("Qty In"), "fieldtype": "Float", "width": 120},
-		{"fieldname": "qty_out", "label": _("Qty Out"), "fieldtype": "Float", "width": 120},
-		{"fieldname": "fee_qty", "label": _("Network Fee (BTC)"), "fieldtype": "Float", "width": 120},
+		{"fieldname": "qty_in", "label": _("Qty In"), "fieldtype": "Float", "precision": 8, "width": 120},
+		{"fieldname": "qty_out", "label": _("Qty Out"), "fieldtype": "Float", "precision": 8, "width": 120},
+		{"fieldname": "fee_qty", "label": _("Network Fee (BTC)"), "fieldtype": "Float", "precision": 8, "width": 120},
 		{"fieldname": "usd_cost", "label": _("USD Cost"), "fieldtype": "Float", "width": 120},
 		{"fieldname": "market_usd_rate", "label": _("Market USD Rate"), "fieldtype": "Float", "width": 120},
-		{"fieldname": "wallet_balance", "label": _("Wallet Balance After"), "fieldtype": "Float", "width": 120},
+		{"fieldname": "wallet_balance", "label": _("Wallet Balance After"), "fieldtype": "Float", "precision": 8, "width": 120},
 	]
 	return columns, rows

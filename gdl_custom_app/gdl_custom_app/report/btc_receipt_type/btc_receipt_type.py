@@ -28,7 +28,7 @@ def execute(filters=None):
 	columns = [
 		{"fieldname": "transaction_type", "label": _("Receipt Type"), "fieldtype": "Data", "width": 120},
 		{"fieldname": "entries", "label": _("Entries"), "fieldtype": "Int", "width": 120},
-		{"fieldname": "qty", "label": _("BTC Quantity"), "fieldtype": "Float", "width": 120},
+		{"fieldname": "qty", "label": _("BTC Quantity"), "fieldtype": "Float", "precision": 8, "width": 120},
 		{"fieldname": "avg_usd_rate", "label": _("Avg USD Rate"), "fieldtype": "Float", "width": 120},
 		{"fieldname": "usd_value", "label": _("USD Value"), "fieldtype": "Float", "width": 120},
 		{"fieldname": "btn_value", "label": _("BTN Value"), "fieldtype": "Float", "width": 120},

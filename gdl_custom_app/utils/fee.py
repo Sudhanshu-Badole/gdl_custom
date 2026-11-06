@@ -1,16 +1,20 @@
 """BTC transfer fee: a Material Transfer row carries a fee qty and rate; on
 submit, one Material Issue Stock Entry is created that issues the fee qty of
-the same item from the same source warehouse to the Fee Expense Account.
+the same item from the same source warehouse.
 
-The issue is valued at the warehouse's moving average like any outgoing row
-(ERPNext resets outgoing rates), so the fee rate entered on the transfer is
-kept on the issue rows for reference and does not change the posted value.
+ERPNext values the issue at the warehouse's weighted-average cost and credits
+stock with that. The fee itself is charged at market value (fee qty x Fee
+Market Rate x the USD->BTN selling rate frozen on the issue), and the
+difference goes to the Disposal Gain/Loss account; see
+overrides/stock_entry.py:CustomStockEntry.get_gl_entries. Example:
+Dr Fee 2,500.00 / Cr BTC stock 2,067.18 / Cr Disposal Gain 432.82.
 """
 
 import frappe
 from frappe import _
 from frappe.utils import flt
 
+from gdl_custom_app.btc.exchange import get_usd_rate
 from gdl_custom_app.utils.btc import resolve_cost_center
 
 
@@ -33,6 +37,8 @@ def validate_fee(doc, method=None):
 
 	if not settings.fee_expense_account:
 		frappe.throw(_("Set the Fee Expense Account in GDL Setting before charging a transfer fee."))
+	if not settings.disposal_gain_loss_account:
+		frappe.throw(_("Set the Disposal Gain/Loss Account in GDL Setting before charging a transfer fee."))
 
 
 def create_fee_issue(doc, method=None):
@@ -51,6 +57,8 @@ def create_fee_issue(doc, method=None):
 			"posting_time": doc.posting_time,
 			"set_posting_time": 1,
 			"custom_fee_charge_for": doc.name,
+			# frozen here so the fee's market value never changes on repost
+			"custom_usd_btn_rate": get_usd_rate(doc.posting_date, "for_selling", doc.company),
 			"business_line": doc.get("business_line"),
 			"remarks": _("Transfer fee for {0}").format(doc.name),
 		}

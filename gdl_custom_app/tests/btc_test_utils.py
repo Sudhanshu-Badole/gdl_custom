@@ -10,6 +10,7 @@ STOCK_ACCOUNT = "11701 - BTC - GDL"
 INCOME_ACCOUNT = "41101 - Revenue from BTC - GDL"
 # The company has no Stock Adjustment Account, so issues/transfers must name a difference account.
 DIFFERENCE_ACCOUNT = "54111 - Transaction Fees for Digital Assets - GDL"
+GAIN_LOSS_ACCOUNT = "41321 - Disposal (Gain)/Loss Digital Assets - GDL"
 CC_A = "DOC - Dochula - GDL"
 CC_B = "GED - Gedu - GDL"
 ZONE_A, ZONE_B = "TZ-A", "TZ-B"
@@ -23,7 +24,13 @@ NO_RATE_DATE = "2026-09-15"
 SETTING_FIELDS = (
 	"btc_item", "btc_warehouse", "enable_btc_rules", "mining_income_account",
 	"premium_income_account", "put_exercised_account", "fee_expense_account",
+	"disposal_gain_loss_account",
 )
+
+
+def item_group():
+	"""The site's digital-asset Item Group ("Digital Asset" on some sites, "Digital Assets" on others)."""
+	return next((g for g in ("Digital Asset", "Digital Assets") if frappe.db.exists("Item Group", g)), "All Item Groups")
 
 
 def setup_masters():
@@ -32,7 +39,7 @@ def setup_masters():
 
 	if not frappe.db.exists("Item", ITEM):
 		frappe.get_doc(
-			{"doctype": "Item", "item_code": ITEM, "item_name": ITEM, "item_group": "Digital Assets",
+			{"doctype": "Item", "item_code": ITEM, "item_name": ITEM, "item_group": item_group(),
 			 "stock_uom": "BTC", "is_stock_item": 1, "valuation_method": "Moving Average", "is_purchase_item": 1,
 			 "is_sales_item": 1, "allow_negative_stock": 0,
 			 "item_defaults": [{"company": COMPANY, "default_inventory_account": STOCK_ACCOUNT}]}

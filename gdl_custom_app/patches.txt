@@ -7,3 +7,4 @@
 gdl_custom_app.patches.v1_0.btc_phase1_masters
 gdl_custom_app.patches.v1_0.btc_rename_custodian_dimension_to_wallet
 gdl_custom_app.patches.v1_0.btc_fix_wallet_field_options
+gdl_custom_app.patches.v1_0.btc_qty_precision

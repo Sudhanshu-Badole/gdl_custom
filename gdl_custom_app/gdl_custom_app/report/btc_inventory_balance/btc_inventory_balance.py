@@ -21,7 +21,7 @@ def execute(filters=None):
 		sum(stock_value_difference) as btn_value, max(posting_date) as last_date
 		from `tabStock Ledger Entry`
 		where company=%(company)s and item_code=%(item)s and is_cancelled=0 and posting_date <= %(as_of)s{cond}
-		group by warehouse, zone, wallet having sum(actual_qty) != 0 or max(posting_date) is not null
+		group by warehouse, zone, wallet having round(sum(actual_qty), 8) != 0
 		order by warehouse, zone, wallet""",
 		params, as_dict=True,
 	)
@@ -33,20 +33,34 @@ def execute(filters=None):
 		r.available = flt(r.qty - r.restricted, 9)
 		r.cost_center = zone_cc.get(r.zone)
 		r.custodian = (wallet_info.get(r.wallet) or {}).get("custodian")
+		r.btn_rate = flt(r.btn_value / r.qty, 4) if r.qty else 0
 		r.usd_rate = avg
 		r.usd_value = flt(r.qty * avg, 4)
+	if rows:
+		rows.append(total_row(rows))
 	columns = [
 		{"fieldname": "warehouse", "label": _("Warehouse"), "fieldtype": "Link", "width": 160, "options": "Warehouse"},
 		{"fieldname": "zone", "label": _("Zone"), "fieldtype": "Link", "width": 120, "options": "Internal Zone"},
 		{"fieldname": "cost_center", "label": _("Zone Cost Center (current)"), "fieldtype": "Link", "width": 160, "options": "Cost Center"},
 		{"fieldname": "custodian", "label": _("Custodian"), "fieldtype": "Link", "width": 120, "options": "BTC Custodian"},
 		{"fieldname": "wallet", "label": _("Wallet"), "fieldtype": "Link", "width": 120, "options": "BTC Wallet"},
-		{"fieldname": "qty", "label": _("BTC Quantity"), "fieldtype": "Float", "width": 120},
-		{"fieldname": "restricted", "label": _("Restricted Quantity"), "fieldtype": "Float", "width": 120},
-		{"fieldname": "available", "label": _("Available Quantity"), "fieldtype": "Float", "width": 120},
-		{"fieldname": "btn_value", "label": _("BTN Valuation (standard)"), "fieldtype": "Currency", "width": 120},
-		{"fieldname": "usd_value", "label": _("USD Valuation (qty x pool avg)"), "fieldtype": "Float", "width": 120},
-		{"fieldname": "usd_rate", "label": _("USD Moving Average Rate"), "fieldtype": "Float", "width": 120},
+		{"fieldname": "qty", "label": _("BTC Quantity"), "fieldtype": "Float", "width": 130, "precision": 8},
+		{"fieldname": "restricted", "label": _("Restricted Quantity"), "fieldtype": "Float", "width": 130, "precision": 8},
+		{"fieldname": "available", "label": _("Available Quantity"), "fieldtype": "Float", "width": 130, "precision": 8},
+		{"fieldname": "btn_value", "label": _("BTN Valuation"), "fieldtype": "Currency", "width": 140},
+		{"fieldname": "btn_rate", "label": _("BTN Cost per BTC"), "fieldtype": "Currency", "width": 140},
+		{"fieldname": "usd_value", "label": _("USD Valuation"), "fieldtype": "Float", "width": 130, "precision": 2},
+		{"fieldname": "usd_rate", "label": _("USD Cost per BTC"), "fieldtype": "Float", "width": 130, "precision": 4},
 		{"fieldname": "last_date", "label": _("Last Transaction"), "fieldtype": "Date", "width": 120},
 	]
 	return columns, rows
+
+
+def total_row(rows):
+	"""Bold total line: quantities and values summed, per-BTC costs = value / qty."""
+	total = frappe._dict(warehouse=_("Total"), bold=1)
+	for f in ("qty", "restricted", "available", "btn_value", "usd_value"):
+		total[f] = flt(sum(flt(r.get(f)) for r in rows), 8 if f in ("qty", "restricted", "available") else 4)
+	total.btn_rate = flt(total.btn_value / total.qty, 4) if total.qty else 0
+	total.usd_rate = flt(total.usd_value / total.qty, 4) if total.qty else 0
+	return total

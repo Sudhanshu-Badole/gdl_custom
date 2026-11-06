@@ -92,6 +92,10 @@ class TestReceipts(BTCPhase1Base):
 		self.assertEqual((row.zone, row.wallet), (u.ZONE_A, u.WALLET_A))
 		self.assertEqual(se.custom_usd_btn_rate, 90)
 
+	def test_mining_warehouse_defaults_to_btc_warehouse(self):
+		se = u.make_receipt("Mining", rows=[{"qty": 0.5, "to_zone": u.ZONE_A, "to_wallet": u.WALLET_A, "t_warehouse": None}])
+		self.assertEqual(se.items[0].t_warehouse, u.WAREHOUSE)
+
 	def test_b02_b03_premium_and_put(self):
 		u.make_receipt("Premium Received", 0.1, 50000, date=u.D1, time="09:00:00")
 		u.make_receipt("Put Exercised", 0.2, 50000, date=u.D1, time="09:30:00")
@@ -159,9 +163,9 @@ class TestUSDValuation(BTCPhase1Base):
 		self.assertClose(u.ledger(direction="Out")[0].usd_outgoing_value, 25000)
 
 	def test_c04_c06_c07_full_issue_leaves_no_residue(self):
-		u.make_receipt(qty=0.333333333, usd_rate=50801.37)
-		u.make_issue(0.111111111, time="11:00:00")
-		u.make_issue(0.222222222, time="12:00:00")
+		u.make_receipt(qty=0.33333333, usd_rate=50801.37)
+		u.make_issue(0.11111111, time="11:00:00")
+		u.make_issue(0.22222222, time="12:00:00")
 		self.assertEqual(u.pool()[:2], (0, 0))
 
 	def test_c05_issue_beyond_balance_rejected(self):
@@ -301,6 +305,19 @@ class TestPurchase(BTCPhase1Base):
 		self.assertEqual(po.custom_is_btc, 1)
 		self.assertEqual(po.items[0].cost_center, u.CC_A)
 		self.assertEqual(po.items[0].warehouse, u.WAREHOUSE)
+
+	def test_pr_warehouse_defaults_to_btc_warehouse(self):
+		po = self._po()
+		po.items[0].warehouse = None
+		po.save()
+		po.submit()
+		from erpnext.buying.doctype.purchase_order.purchase_order import make_purchase_receipt
+		pr = make_purchase_receipt(po.name)
+		pr.update({"posting_date": u.D1, "set_posting_time": 1, "conversion_rate": 90})
+		pr.items[0].warehouse = None
+		pr.items[0].wallet = u.WALLET_A
+		pr.insert()
+		self.assertEqual((po.items[0].warehouse, pr.items[0].warehouse), (u.WAREHOUSE, u.WAREHOUSE))
 
 	def test_b11_po_requires_bucket(self):
 		with self.assertRaises(frappe.ValidationError):

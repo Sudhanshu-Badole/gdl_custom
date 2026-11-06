@@ -127,7 +127,7 @@ class TestSales(BTCPhase1Base):
 class TestReports(BTCPhase1Base):
 	def setUp(self):
 		super().setUp()
-		u.set_settings(fee_expense_account=u.DIFFERENCE_ACCOUNT)
+		u.set_settings(fee_expense_account=u.DIFFERENCE_ACCOUNT, disposal_gain_loss_account=u.GAIN_LOSS_ACCOUNT)
 		u.make_receipt("Mining", qty=1, usd_rate=50800, date=u.D1, zone=u.ZONE_A, wallet=u.WALLET_A)
 		u.make_receipt("Purchase" if False else "Premium Received", qty=0.5, usd_rate=50800, date=u.D1, time="11:00:00",
 			zone=u.ZONE_B, wallet=u.WALLET_B)
@@ -155,6 +155,15 @@ class TestReports(BTCPhase1Base):
 	def test_j04_receipt_type_report(self):
 		_c, rows = run_report("btc_receipt_type")
 		self.assertEqual({r.transaction_type: r.qty for r in rows}, {"Mining": 1, "Premium Received": 0.5})
+
+	def test_inventory_balance_total_and_cost_per_btc(self):
+		_cols, rows = run_report("btc_inventory_balance", posting_date=u.D4)
+		total = rows[-1]
+		self.assertEqual(total.warehouse, "Total")
+		self.assertClose(total.qty, 1.5, 9)
+		self.assertClose(total.btn_value, sum(r.btn_value for r in rows[:-1]))
+		self.assertClose(total.btn_rate, 50800 * 90, 2)  # BTN cost per BTC
+		self.assertClose(total.usd_rate, 50800, 2)  # USD cost per BTC
 
 	def test_j05_movement_history_with_fee(self):
 		u.make_transfer(0.3, fee_qty=0.001, fee_rate=61000, date=u.D3)

@@ -14,6 +14,7 @@
   "btc_tracking_section",
   "fee_section",
   "fee_expense_account",
+  "disposal_gain_loss_account",
   "usd_valuation_section",
   "mining_income_account",
   "premium_income_account",
@@ -63,10 +64,18 @@
    "label": "BTC Transfer Fee"
   },
   {
-   "description": "Debited by the Material Issue created for a BTC transfer fee.",
+   "description": "Debited with the market value of a BTC transfer fee (fee qty x Fee Market Rate x USD-BTN selling rate).",
    "fieldname": "fee_expense_account",
    "fieldtype": "Link",
    "label": "Fee Expense Account",
+   "link_filters": "[[\"Account\",\"is_group\",\"=\",0]]",
+   "options": "Account"
+  },
+  {
+   "description": "Takes the difference between the market value of a BTC transfer fee and its weighted-average cost (credit = gain, debit = loss).",
+   "fieldname": "disposal_gain_loss_account",
+   "fieldtype": "Link",
+   "label": "Disposal Gain/Loss Account",
    "link_filters": "[[\"Account\",\"is_group\",\"=\",0]]",
    "options": "Account"
   },
@@ -115,7 +124,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-10-17 11:08:34.061944",
+ "modified": "2026-11-06 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Gdl Custom App",
  "name": "GDL Setting",

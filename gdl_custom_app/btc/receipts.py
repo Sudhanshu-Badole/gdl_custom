@@ -31,11 +31,13 @@ def is_btc_row(settings, row):
 
 
 def prepare_stock_entry(doc, method=None):
-	"""before_validate: derive the BTN rate and income account for BTC receipt types."""
-	if doc.stock_entry_type not in RECEIPT_TYPES:
-		return
+	"""before_validate: default the BTC warehouse; for BTC receipt types also derive
+	the BTN rate and income account."""
 	settings = get_settings()
 	if not settings.enable_btc_rules:
+		return
+	set_default_warehouses(doc, settings)
+	if doc.stock_entry_type not in RECEIPT_TYPES:
 		return
 
 	if doc.purpose != "Material Receipt":
@@ -58,6 +60,35 @@ def prepare_stock_entry(doc, method=None):
 		row.basic_rate = flt(row.custom_usd_rate) * rate
 		row.allow_zero_valuation_rate = 0
 		row.expense_account = account
+
+
+# Stock Entry purpose -> warehouse fields a BTC row needs.
+PURPOSE_WAREHOUSE_FIELDS = {
+	"Material Receipt": ("t_warehouse",),
+	"Material Issue": ("s_warehouse",),
+	"Material Transfer": ("s_warehouse", "t_warehouse"),
+}
+
+
+def set_default_warehouses(doc, settings):
+	"""Fill blank warehouse fields on BTC rows with GDL Setting's BTC warehouse."""
+	fields = PURPOSE_WAREHOUSE_FIELDS.get(doc.purpose)
+	if not fields or not settings.btc_warehouse:
+		return
+	for row in doc.get("items") or []:
+		if is_btc_row(settings, row):
+			for field in fields:
+				if not row.get(field):
+					row.set(field, settings.btc_warehouse)
+
+
+@frappe.whitelist()
+def get_btc_defaults():
+	"""BTC item and warehouse for the form-side warehouse auto-fill."""
+	settings = get_settings()
+	if not settings.enable_btc_rules:
+		return {}
+	return {"item": settings.btc_item, "warehouse": settings.btc_warehouse}
 
 
 def validate_receipt(doc, method=None):
@@ -99,6 +130,8 @@ def validate_purchase_receipt(doc, method=None):
 	for row in doc.items:
 		if not is_btc_row(settings, row):
 			continue
+		if settings.btc_warehouse:
+			row.warehouse = settings.btc_warehouse
 		if doc.currency != usd_valuation_currency():
 			frappe.throw(_("Row #{0}: a BTC Purchase Receipt must be in USD.").format(row.idx))
 		if row.get("purchase_order") and not row.get("zone"):

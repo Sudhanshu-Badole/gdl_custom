@@ -11,15 +11,14 @@ app_license = "mit"
 # required_apps = []
 
 # Each item in the list will be shown as an app in the apps page
-# add_to_apps_screen = [
-# 	{
-# 		"name": "gdl_custom_app",
-# 		"logo": "/assets/gdl_custom_app/logo.png",
-# 		"title": "Gdl Custom App",
-# 		"route": "/gdl_custom_app",
-# 		"has_permission": "gdl_custom_app.api.permission.has_app_permission"
-# 	}
-# ]
+add_to_apps_screen = [
+	{
+		"name": "gdl_custom_app",
+		"logo": "/assets/gdl_custom_app/images/btc-inventory.svg",
+		"title": "BTC Inventory",
+		"route": "/desk/btc-inventory",
+	}
+]
 
 # Includes in <head>
 # ------------------
@@ -44,10 +43,11 @@ app_license = "mit"
 
 # include js in doctype views
 doctype_js = {
-	"Stock Entry": "public/js/btc_cost_center.js",
+	"Stock Entry": ["public/js/btc_cost_center.js", "public/js/btc_defaults.js"],
 	"Sales Invoice": "public/js/btc_cost_center.js",
 	"Delivery Note": "public/js/btc_cost_center.js",
-	"Purchase Receipt": "public/js/btc_cost_center.js",
+	"Purchase Receipt": ["public/js/btc_cost_center.js", "public/js/btc_defaults.js"],
+	"Purchase Order": "public/js/btc_defaults.js",
 	"Stock Reconciliation": "public/js/btc_cost_center.js",
 	"Item": "public/js/item_code.js",
 }
@@ -317,7 +317,10 @@ doc_events = {
 	},
 }
 
-override_doctype_class = {"Asset": "gdl_custom_app.overrides.asset.CustomAsset"}
+override_doctype_class = {
+	"Asset": "gdl_custom_app.overrides.asset.CustomAsset",
+	"Stock Entry": "gdl_custom_app.overrides.stock_entry.CustomStockEntry",
+}
 
 # Zone / Wallet are Inventory Dimensions (they generate the zone/wallet
 # fields on every stock doctype); the other fields are plain Custom Fields.

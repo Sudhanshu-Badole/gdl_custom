@@ -15,6 +15,7 @@ choice on a non-BTC row survives.
 
 import frappe
 from frappe import _
+from frappe.utils import flt
 
 TAGGED_DOCTYPES = {
 	"Stock Entry",
@@ -128,7 +129,19 @@ def _row_context(parent_doctype, purpose, row):
 	}
 
 
+BTC_QTY_DECIMALS = 8  # 1 satoshi
+
+
 def _validate_btc_row(settings, row, ctx):
+	for fieldname in ("qty", "custom_fee_qty"):
+		qty = flt(row.get(fieldname))
+		if qty and flt(qty, BTC_QTY_DECIMALS) != flt(qty, 9):
+			frappe.throw(
+				_("Row #{0}: BTC quantity {1} has more than {2} decimal places.").format(
+					row.idx, qty, BTC_QTY_DECIMALS
+				)
+			)
+
 	if settings.btc_warehouse:
 		for warehouse in ctx["warehouses"]:
 			if warehouse != settings.btc_warehouse:
