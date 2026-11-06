@@ -49,6 +49,7 @@ doctype_js = {
 	"Delivery Note": "public/js/btc_cost_center.js",
 	"Purchase Receipt": "public/js/btc_cost_center.js",
 	"Stock Reconciliation": "public/js/btc_cost_center.js",
+	"Item": "public/js/item_code.js",
 }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
@@ -273,6 +274,7 @@ required_apps = ["frappe", "erpnext"]
 # so it edits the rows in the same save, before any stock/GL posting.
 _btc = "gdl_custom_app.utils.btc.apply_btc_rules_and_cost_centers"
 doc_events = {
+	"Item": {"before_insert": "gdl_custom_app.utils.item_code.set_item_code"},
 	"Stock Entry": {
 		"before_validate": "gdl_custom_app.btc.receipts.prepare_stock_entry",
 		"validate": [
