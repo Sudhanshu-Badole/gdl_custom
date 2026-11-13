@@ -43,13 +43,14 @@ add_to_apps_screen = [
 
 # include js in doctype views
 doctype_js = {
-	"Stock Entry": ["public/js/btc_cost_center.js", "public/js/btc_defaults.js"],
+	"Stock Entry": ["public/js/btc_cost_center.js", "public/js/btc_defaults.js", "public/js/btc_balance.js"],
 	"Sales Invoice": "public/js/btc_cost_center.js",
-	"Delivery Note": "public/js/btc_cost_center.js",
+	"Delivery Note": ["public/js/btc_cost_center.js", "public/js/btc_balance.js"],
 	"Purchase Receipt": ["public/js/btc_cost_center.js", "public/js/btc_defaults.js"],
 	"Purchase Order": "public/js/btc_defaults.js",
 	"Stock Reconciliation": "public/js/btc_cost_center.js",
 	"Item": "public/js/item_code.js",
+	"Payment Entry": "public/js/btc_payment.js",
 }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
@@ -303,6 +304,7 @@ doc_events = {
 		"on_cancel": "gdl_custom_app.btc.receipts.reverse_usd_ledger",
 	},
 	"Sales Order": {"validate": "gdl_custom_app.btc.receipts.validate_sales_order"},
+	"Payment Entry": {"before_validate": "gdl_custom_app.btc.receipts.set_btc_payment_amounts"},
 	"Purchase Receipt": {
 		"validate": ["gdl_custom_app.btc.receipts.validate_purchase_receipt", _btc],
 		"on_submit": "gdl_custom_app.btc.receipts.post_usd_ledger",
@@ -320,6 +322,7 @@ doc_events = {
 override_doctype_class = {
 	"Asset": "gdl_custom_app.overrides.asset.CustomAsset",
 	"Stock Entry": "gdl_custom_app.overrides.stock_entry.CustomStockEntry",
+	"Sales Invoice": "gdl_custom_app.overrides.sales_invoice.CustomSalesInvoice",
 }
 
 # Zone / Wallet are Inventory Dimensions (they generate the zone/wallet

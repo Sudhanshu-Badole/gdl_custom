@@ -20,7 +20,15 @@ class TestSales(BTCPhase1Base):
 	def test_g01_sales_order_defaults(self):
 		so = u.make_sales_order(submit=False)
 		self.assertEqual(so.custom_is_btc, 1)
-		self.assertEqual((so.items[0].cost_center, so.items[0].warehouse), (u.CC_A, u.WAREHOUSE))
+		self.assertEqual(so.items[0].warehouse, u.WAREHOUSE)
+		self.assertFalse(so.custom_zone)  # zone is chosen on the Delivery Note, not the order
+
+	def test_g01_delivery_needs_zone_and_wallet(self):
+		so = u.make_sales_order(qty=0.1)
+		with self.assertRaises(frappe.ValidationError):
+			u.make_delivery(so, [(0.1, u.WALLET_A)], zone=None)
+		dn = u.make_delivery(so, [(0.1, u.WALLET_A)], submit=False)
+		self.assertEqual(dn.items[0].cost_center, u.CC_A)  # cost center follows the delivery row's zone
 
 	def test_g01_sales_order_needs_bucket_and_usd(self):
 		with self.assertRaises(frappe.ValidationError):
@@ -79,7 +87,7 @@ class TestSales(BTCPhase1Base):
 		self.assertEqual(len(u.ledger(direction="Out")), 1)
 		self.assertEqual(frappe.get_all("Stock Ledger Entry", filters={"voucher_no": si.name}), [])
 		gl = frappe.get_all("GL Entry", filters={"voucher_no": si.name, "is_cancelled": 0}, fields=["account", "debit", "credit"])
-		self.assertClose(sum(g.credit for g in gl), 23940 * 91)  # BTN revenue at invoice-date rate
+		self.assertClose(sum(g.debit for g in gl if g.account == si.debit_to), 23940 * 91)  # BTN receivable at invoice-date rate
 		si.cancel()
 		self.assertEqual(len(u.ledger(direction="Out")), 1)  # stock belongs to the DN
 		self.assertClose(u.wallet_balance(u.WALLET_A), 1 - 0.399, 9)
@@ -122,6 +130,54 @@ class TestSales(BTCPhase1Base):
 		self.assertEqual(frappe.get_all("GL Entry", filters={"voucher_no": pe.name, "account": fx}), [])  # not duplicated on the PE
 		# the inventory disposal gain is a separate, USD-only figure
 		self.assertClose(u.ledger(direction="Out")[0].usd_market_difference, 3670.80)
+
+
+	def test_g11_payment_btn_debtor_usd_bank(self):
+		"""BTN debtor + USD bank: receive the USD invoice value, debtor cleared, FX difference to 41331."""
+		from erpnext.accounts.doctype.payment_entry.payment_entry import get_payment_entry
+
+		so = u.make_sales_order(qty=0.399, rate=60000)
+		dn = u.make_delivery(so, [(0.399, u.WALLET_A)])
+		si = u.make_invoice(dn, rate_btn=91)  # default BTN debtor
+		self.assertClose(si.grand_total, 23940)
+		self.assertClose(si.base_grand_total, 2178540)
+		pe = get_payment_entry("Sales Invoice", si.name, bank_account=u.USD_BANK)
+		pe.update({"posting_date": u.D4, "reference_date": u.D4, "reference_no": "T2", "target_exchange_rate": 91.5,
+			"business_line": u.BUSINESS_LINE})
+		pe.insert()
+		self.assertClose(pe.received_amount, 23940)  # USD, not the BTN value
+		self.assertClose(pe.base_received_amount, 2190510)
+		pe.submit()
+		fx = frappe.db.get_value("Company", u.COMPANY, "exchange_gain_loss_account")
+		gl = frappe.get_all("GL Entry", filters={"voucher_no": pe.name, "is_cancelled": 0}, fields=["account", "debit", "credit"])
+		by = lambda acc: sum(g.credit - g.debit for g in gl if g.account == acc)
+		self.assertClose(by(u.USD_BANK), -2190510)
+		self.assertClose(by(si.debit_to), 2178540)  # one debtor line, equal to the invoice
+		self.assertClose(by(fx), 11970)  # gain
+		self.assertEqual(sum(1 for g in gl if g.account == si.debit_to), 1)
+		# a second receipt cannot exceed the invoice's USD value: the amount is derived, not typed
+		si2 = u.make_invoice(u.make_delivery(u.make_sales_order(qty=0.1, rate=60000), [(0.1, u.WALLET_A)], date=u.D4), date=u.D4, rate_btn=91)
+		pe2 = get_payment_entry("Sales Invoice", si2.name, bank_account=u.USD_BANK)
+		pe2.update({"posting_date": u.D4, "reference_date": u.D4, "reference_no": "T3", "business_line": u.BUSINESS_LINE,
+			"received_amount": 999999, "paid_amount": 999999})
+		pe2.insert()
+		self.assertClose(pe2.received_amount, 6000)
+		self.assertClose(pe2.paid_amount, si2.base_grand_total)
+		self.assertEqual(flt(pe2.unallocated_amount), 0)
+
+	def test_g12_balance_popup_and_quick_enter(self):
+		from gdl_custom_app.btc import balance
+
+		rows = balance.get_zone_wallet_balances(on_date=u.D4)
+		mine = [r for r in rows if (r["zone"], r["wallet"]) == (u.ZONE_A, u.WALLET_A)]
+		self.assertEqual(len(mine), 1)
+		self.assertClose(mine[0]["available"], 1, 9)
+		self.assertEqual(balance.get_zone_wallet_balances(wallet="NO-SUCH-WALLET", on_date=u.D4), [])
+		alloc = balance.allocate_wallet_qty(u.WALLET_A, 0.4, on_date=u.D4)
+		self.assertEqual([(a["zone"], a["wallet"]) for a in alloc], [(u.ZONE_A, u.WALLET_A)])
+		self.assertClose(sum(a["qty"] for a in alloc), 0.4, 9)
+		with self.assertRaises(frappe.ValidationError):
+			balance.allocate_wallet_qty(u.WALLET_A, 5, on_date=u.D4)
 
 
 class TestReports(BTCPhase1Base):

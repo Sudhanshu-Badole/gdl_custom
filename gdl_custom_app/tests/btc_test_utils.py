@@ -160,11 +160,11 @@ def make_customer():
 	return CUSTOMER
 
 
-def make_sales_order(qty=1, rate=60000, zone=ZONE_A, bucket="Cash Mgmt", date=D1, submit=True, rate_btn=91):
+def make_sales_order(qty=1, rate=60000, bucket="Cash Mgmt", date=D1, submit=True, rate_btn=91):
 	so = frappe.new_doc("Sales Order")
 	so.update({"customer": make_customer(), "company": COMPANY, "transaction_date": date, "delivery_date": D4,
 		"currency": "USD", "conversion_rate": rate_btn, "selling_price_list": "Standard Selling",
-		"price_list_currency": "USD", "plc_conversion_rate": rate_btn, "custom_zone": zone,
+		"price_list_currency": "USD", "plc_conversion_rate": rate_btn,
 		"custom_reporting_bucket": bucket, "business_line": BUSINESS_LINE})
 	so.append("items", {"item_code": ITEM, "qty": qty, "rate": rate, "delivery_date": D4, "warehouse": WAREHOUSE,
 		"business_line": BUSINESS_LINE})
@@ -174,8 +174,8 @@ def make_sales_order(qty=1, rate=60000, zone=ZONE_A, bucket="Cash Mgmt", date=D1
 	return so
 
 
-def make_delivery(so, rows, date=D3, submit=True, rate_btn=91):
-	"""rows: [(qty, wallet)] - one Delivery Note row per wallet, as the wallet split."""
+def make_delivery(so, rows, date=D3, submit=True, rate_btn=91, zone=ZONE_A):
+	"""rows: [(qty, wallet)] - one Delivery Note row per wallet, as the wallet split; zone is chosen on the delivery."""
 	from erpnext.selling.doctype.sales_order.sales_order import make_delivery_note
 
 	dn = make_delivery_note(so.name)
@@ -186,7 +186,7 @@ def make_delivery(so, rows, date=D3, submit=True, rate_btn=91):
 	for qty, wallet in rows:
 		row = dn.append("items", template.as_dict())
 		row.name = None
-		row.update({"qty": qty, "wallet": wallet, "zone": None, "expense_account": DIFFERENCE_ACCOUNT,
+		row.update({"qty": qty, "wallet": wallet, "zone": zone, "expense_account": DIFFERENCE_ACCOUNT,
 			"business_line": BUSINESS_LINE})
 	dn.insert()
 	if submit:

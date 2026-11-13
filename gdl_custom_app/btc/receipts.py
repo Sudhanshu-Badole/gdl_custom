@@ -234,25 +234,20 @@ def validate_sales_order(doc, method=None):
 	rows = [r for r in doc.items if is_btc_row(settings, r)]
 	doc.custom_is_btc = 1 if rows else 0
 	if not rows:
-		doc.custom_zone = doc.custom_reporting_bucket = None
+		doc.custom_reporting_bucket = None
 		return
 	if doc.currency != "USD":
 		frappe.throw(_("A BTC Sales Order must be in USD."))
-	if not doc.custom_zone:
-		frappe.throw(_("Zone is mandatory for a BTC Sales Order."))
 	if not doc.custom_reporting_bucket:
 		frappe.throw(_("Reporting Bucket is mandatory for a BTC Sales Order."))
-	zone = frappe.get_cached_value("Internal Zone", doc.custom_zone, ["is_active", "default_cost_center"], as_dict=True)
-	if not zone.is_active:
-		frappe.throw(_("Zone {0} is inactive.").format(doc.custom_zone))
+	# The zone and wallet are chosen on the Delivery Note; the cost center follows the delivery row's zone.
 	for row in rows:
-		row.cost_center = zone.default_cost_center
 		if settings.btc_warehouse:
 			row.warehouse = settings.btc_warehouse
 
 
 def validate_delivery_note(doc, method=None):
-	"""Runs before the generic cost-center hook: inherit the order's zone, then check masters."""
+	"""Runs before the generic cost-center hook. Zone and wallet are chosen on the delivery row (mandatory)."""
 	settings = get_settings()
 	if not settings.enable_btc_rules:
 		return
@@ -263,8 +258,6 @@ def validate_delivery_note(doc, method=None):
 			frappe.throw(_("Row #{0}: BTC sales returns are not supported yet.").format(row.idx))
 		if doc.currency != "USD":
 			frappe.throw(_("Row #{0}: a BTC Delivery Note must be in USD.").format(row.idx))
-		if not row.get("zone") and row.get("against_sales_order"):
-			row.zone = frappe.db.get_value("Sales Order", row.against_sales_order, "custom_zone")
 		validate_zone_active(row, row.get("zone"))
 		validate_wallet(row, row.get("wallet"), doc.company)
 
@@ -299,3 +292,57 @@ def validate_sales_invoice(doc, method=None):
 			frappe.throw(_("Row #{0}: invoice BTC against a submitted Delivery Note.").format(row.idx))
 		if doc.currency != "USD":
 			frappe.throw(_("Row #{0}: a BTC Sales Invoice must be in USD.").format(row.idx))
+
+
+def get_btc_payment_split(doc):
+	"""USD receipt for a BTN-debtor BTC invoice payment.
+
+	Returns (paid_btn, received_usd) or None when this payment is not a BTC invoice receipt. The USD
+	received is the invoice's USD value for the BTN being cleared, so the exchange difference between
+	the invoice rate and the payment rate is left for ERPNext's Exchange Gain/Loss line (41331).
+	"""
+	settings = get_settings()
+	if not settings.enable_btc_rules or doc.payment_type != "Receive" or doc.party_type != "Customer":
+		return None
+	refs = [r for r in doc.get("references") or [] if flt(r.allocated_amount)]
+	if not refs or any(r.reference_doctype != "Sales Invoice" for r in refs):
+		return None
+	company_currency = frappe.get_cached_value("Company", doc.company, "default_currency")
+	if doc.paid_from_account_currency != company_currency or doc.paid_to_account_currency == company_currency:
+		return None  # a USD debtor is handled by ERPNext as is
+
+	paid_btn = received_usd = 0.0
+	for ref in refs:
+		si = frappe.db.get_value(
+			"Sales Invoice", ref.reference_name, ["currency", "grand_total", "base_grand_total"], as_dict=True
+		)
+		if not si or si.currency != doc.paid_to_account_currency or not flt(si.base_grand_total):
+			return None
+		if not frappe.db.exists(
+			"Sales Invoice Item", {"parent": ref.reference_name, "item_code": settings.btc_item}
+		):
+			return None
+		paid_btn += flt(ref.allocated_amount)
+		received_usd += flt(ref.allocated_amount) * flt(si.grand_total) / flt(si.base_grand_total)
+	return paid_btn, received_usd
+
+
+def set_btc_payment_amounts(doc, method=None):
+	"""before_validate: pay in BTN what the invoice holds, receive its USD value (no over-receipt)."""
+	split = get_btc_payment_split(doc)
+	if not split:
+		return
+	paid_btn, received_usd = split
+	doc.source_exchange_rate = 1
+	doc.paid_amount = flt(paid_btn, doc.precision("paid_amount"))
+	doc.received_amount = flt(received_usd, doc.precision("received_amount"))
+
+
+@frappe.whitelist()
+def get_btc_payment_amounts(doc):
+	"""Form helper: the same split for an unsaved Payment Entry."""
+	doc = frappe.get_doc(frappe.parse_json(doc))
+	split = get_btc_payment_split(doc)
+	if not split:
+		return None
+	return {"paid_amount": flt(split[0], 2), "received_amount": flt(split[1], 2)}

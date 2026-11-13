@@ -67,3 +67,84 @@ def validate_available(item_code, warehouse, requests, on_date, label=None):
 				).format(f"{label}: " if label else "", wallet, zone, available, balance, restricted, flt(qty, 9)),
 				title=_("Insufficient Available BTC"),
 			)
+
+
+def get_available_by_zone_wallet(item_code, warehouse, on_date=None, wallet=None, zone=None, exclude_restriction=None):
+	"""[{zone, wallet, balance, restricted, available}] for each zone/wallet holding BTC (zero rows hidden)."""
+	conditions, params = "", [item_code, warehouse]
+	if on_date:
+		conditions += " and posting_date <= %s"
+		params.append(getdate(on_date))
+	for field, value in (("wallet", wallet), ("zone", zone)):
+		if value:
+			conditions += f" and {field} = %s"
+			params.append(value)
+	rows = frappe.db.sql(
+		f"""select zone, wallet, sum(actual_qty) as balance from `tabStock Ledger Entry`
+		where item_code=%s and warehouse=%s and is_cancelled=0 and ifnull(zone,'')!='' and ifnull(wallet,'')!=''{conditions}
+		group by zone, wallet order by wallet, zone""",
+		params,
+		as_dict=True,
+	)
+	# one grouped query for the active restrictions of every wallet/zone (not one query per row)
+	on = getdate(on_date or frappe.utils.today())
+	restr_extra, restr_params = "", [item_code, warehouse, on, on]
+	if exclude_restriction:
+		restr_extra = " and name != %s"
+		restr_params.append(exclude_restriction)
+	restricted = {
+		(r.zone, r.wallet): flt(r.qty, 9)
+		for r in frappe.db.sql(
+			f"""select zone, wallet, coalesce(sum(qty - released_qty), 0) as qty from `tabBTC Restriction`
+			where item_code=%s and warehouse=%s and state='Active' and start_date <= %s and expiry_date >= %s{restr_extra}
+			group by zone, wallet""",
+			restr_params,
+			as_dict=True,
+		)
+	}
+
+	result = []
+	for row in rows:
+		balance = flt(row.balance, 9)
+		held = restricted.get((row.zone, row.wallet), 0)
+		available = flt(balance - held, 9)
+		if balance or available:
+			result.append({"zone": row.zone, "wallet": row.wallet, "balance": balance, "restricted": held, "available": available})
+	return result
+
+
+@frappe.whitelist()
+def get_zone_wallet_balances(item_code=None, warehouse=None, wallet=None, zone=None, on_date=None):
+	"""Form popup: available BTC per zone and wallet (defaults to the BTC item and warehouse)."""
+	settings = frappe.get_cached_doc("GDL Setting")
+	item_code = item_code or settings.btc_item
+	warehouse = warehouse or settings.btc_warehouse
+	if not item_code or not warehouse:
+		return []
+	return get_available_by_zone_wallet(item_code, warehouse, on_date, wallet, zone)
+
+
+@frappe.whitelist()
+def allocate_wallet_qty(wallet, qty, item_code=None, warehouse=None, on_date=None):
+	"""Quick Enter: split qty of one wallet across its zones, largest available balance first.
+
+	Returns [{zone, wallet, qty}]; throws when the wallet cannot cover qty.
+	"""
+	qty = flt(qty, 9)
+	if qty <= 0:
+		frappe.throw(_("Enter a quantity greater than zero."))
+	available = [r for r in get_zone_wallet_balances(item_code, warehouse, wallet=wallet, on_date=on_date) if r["available"] > 0]
+	total = flt(sum(r["available"] for r in available), 9)
+	if qty > total:
+		frappe.throw(
+			_("Wallet {0} has {1} BTC available across its zones; {2} BTC requested.").format(wallet, total, qty),
+			title=_("Insufficient Available BTC"),
+		)
+	remaining, rows = qty, []
+	for r in sorted(available, key=lambda r: -r["available"]):
+		take = flt(min(remaining, r["available"]), 9)
+		rows.append({"zone": r["zone"], "wallet": wallet, "qty": take})
+		remaining = flt(remaining - take, 9)
+		if not remaining:
+			break
+	return rows
