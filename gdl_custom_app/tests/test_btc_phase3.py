@@ -180,6 +180,19 @@ class TestSales(BTCPhase1Base):
 			balance.allocate_wallet_qty(u.WALLET_A, 5, on_date=u.D4)
 
 
+	def test_g13_btc_prefixed_receipt_types_follow_plain_rules(self):
+		"""Stock Entry Types "BTC Mining" / "BTC Premium Received" / "BTC Put Exercised" behave like the plain ones."""
+		accounts = {"Mining": "mining_income_account", "Premium Received": "premium_income_account", "Put Exercised": "put_exercised_account"}
+		for plain, field in accounts.items():
+			name = f"BTC {plain}"
+			if not frappe.db.exists("Stock Entry Type", name):
+				frappe.get_doc({"doctype": "Stock Entry Type", "name": name, "purpose": "Material Receipt"}).insert()
+			se = u.make_receipt(name, qty=0.5, usd_rate=50000, date=u.D1, time="12:00:00")
+			self.assertClose(se.items[0].basic_rate, 50000 * 90)  # USD rate x for_buying rate on D1
+			self.assertEqual(se.items[0].expense_account, frappe.db.get_single_value("GDL Setting", field))
+			self.assertEqual(u.ledger(direction="In")[-1].transaction_type, plain)
+
+
 class TestReports(BTCPhase1Base):
 	def setUp(self):
 		super().setUp()

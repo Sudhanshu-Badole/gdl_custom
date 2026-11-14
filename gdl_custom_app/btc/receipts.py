@@ -21,6 +21,11 @@ RECEIPT_TYPES = {
 	"Put Exercised": "put_exercised_account",
 }
 
+# "BTC ..." Stock Entry Types follow the same rules as the plain ones, and are recorded in the
+# USD ledger / reports under the canonical name.
+RECEIPT_TYPE_ALIASES = {f"BTC {name}": name for name in RECEIPT_TYPES}
+RECEIPT_TYPES.update({alias: RECEIPT_TYPES[name] for alias, name in RECEIPT_TYPE_ALIASES.items()})
+
 
 def get_settings():
 	return frappe.get_cached_doc("GDL Setting")
@@ -190,7 +195,7 @@ def post_usd_ledger(doc, method=None):
 			zone, wallet, warehouse = (
 				(row.to_zone, row.to_wallet, row.t_warehouse) if sign > 0 else (row.zone, row.wallet, row.s_warehouse)
 			)
-			transaction_type = doc.stock_entry_type
+			transaction_type = RECEIPT_TYPE_ALIASES.get(doc.stock_entry_type, doc.stock_entry_type)
 			market_rate = flt(row.get("custom_issue_fee_rate")) if sign < 0 else 0
 		else:  # Purchase Receipt (in) and Delivery Note (out)
 			is_sale = doc.doctype == "Delivery Note"
