@@ -1,4 +1,4 @@
-// BTC invoice receipts: the USD amount received is the invoice's USD value for the BTN being cleared
+// BTC invoice payments/receipts: the USD amount is the invoice's USD value for the BTN being cleared
 // (rule in gdl_custom_app/btc/receipts.py get_btc_payment_split; the server re-applies it on save).
 // Without this, ERPNext keeps the typed USD amount and re-prices paid_amount when the rate changes,
 // which over-receives and leaves an unallocated debtor credit.
@@ -13,7 +13,7 @@ frappe.ui.form.on("Payment Entry Reference", {
 });
 
 function gdl_apply_btc_payment_amounts(frm) {
-	if (frm.doc.docstatus !== 0 || frm.doc.payment_type !== "Receive" || !(frm.doc.references || []).length) {
+	if (frm.doc.docstatus !== 0 || !["Receive", "Pay"].includes(frm.doc.payment_type) || !(frm.doc.references || []).length) {
 		return;
 	}
 	frappe.call({

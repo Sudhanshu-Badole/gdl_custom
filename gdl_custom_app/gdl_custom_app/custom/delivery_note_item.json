@@ -1,0 +1,24 @@
+{
+ "custom_fields": [
+  {
+   "doctype": "Custom Field",
+   "dt": "Delivery Note Item",
+   "module": null,
+   "owner": "Administrator",
+   "name": "Delivery Note Item-custom_balance",
+   "fieldname": "custom_balance",
+   "fieldtype": "Float",
+   "label": "Balance",
+   "insert_after": "wallet",
+   "read_only": 1,
+   "no_copy": 1,
+   "precision": "8",
+   "description": "BTC available in the source Zone and Wallet, less the quantity on the rows above."
+  }
+ ],
+ "custom_perms": [],
+ "doctype": "Delivery Note Item",
+ "links": [],
+ "property_setters": [],
+ "sync_on_migrate": 1
+}

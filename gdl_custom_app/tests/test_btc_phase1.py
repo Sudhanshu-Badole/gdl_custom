@@ -345,3 +345,117 @@ class TestPurchase(BTCPhase1Base):
 		self.assertClose(rows[0].usd_incoming_value, 0.4 * 51000)
 		self.assertEqual(u.pool()[:2], (1, 51000))
 		self.assertEqual(po.reload().per_received, 100)
+
+	def _purchase_invoice(self, qty=0.4, rate=51000, date=u.D1):
+		from erpnext.stock.doctype.purchase_receipt.purchase_receipt import make_purchase_invoice
+
+		po = self._po(qty=qty, rate=rate)
+		po.submit()
+		pr = self._pr(po, qty, date=date)
+		pr.submit()
+		pi = make_purchase_invoice(pr.name)
+		pi.update({"posting_date": date, "set_posting_time": 1, "bill_no": "T1", "bill_date": date, "due_date": u.D4,
+			"conversion_rate": 90, "business_line": u.BUSINESS_LINE})
+		for term in pi.get("payment_schedule") or []:
+			term.due_date = u.D4
+		for row in pi.items:
+			row.business_line = u.BUSINESS_LINE
+		pi.insert()
+		pi.submit()
+		return pi
+
+	def _supplier_payment(self, pi, paid_rate, date=u.D4, **updates):
+		from erpnext.accounts.doctype.payment_entry.payment_entry import get_payment_entry
+
+		pe = get_payment_entry("Purchase Invoice", pi.name, bank_account=u.USD_BANK)
+		pe.update({"posting_date": date, "reference_date": date, "reference_no": "S1", "source_exchange_rate": paid_rate,
+			"business_line": u.BUSINESS_LINE, **updates})
+		pe.insert()
+		return pe
+
+	def _gl_by_account(self, voucher_no):
+		gl = frappe.get_all("GL Entry", filters={"voucher_no": voucher_no, "is_cancelled": 0}, fields=["account", "debit", "credit"])
+		totals = {}
+		for g in gl:
+			totals[g.account] = totals.get(g.account, 0) + g.debit - g.credit
+		return gl, totals
+
+	def test_supplier_payment_btn_creditor_usd_bank_loss(self):
+		"""BTN creditor + USD bank, paid at a higher rate: the creditor clears at the invoice value, the rate loss goes to 41331."""
+		pi = self._purchase_invoice(qty=0.4, rate=51000)  # USD 20,400 = Nu. 1,836,000 at 90
+		self.assertClose(pi.grand_total, 20400)
+		self.assertClose(pi.base_grand_total, 1836000)
+		pe = self._supplier_payment(pi, 92)  # pays USD 20,400 = Nu. 1,876,800 at 92
+		self.assertClose(pe.paid_amount, 20400)  # USD out of the bank, not the BTN value
+		self.assertEqual(flt(pe.unallocated_amount), 0)
+		pe.submit()
+		gl, by = self._gl_by_account(pe.name)
+		fx = frappe.db.get_value("Company", u.COMPANY, "exchange_gain_loss_account")
+		self.assertClose(by[pi.credit_to], 1836000)  # one creditor line, equal to the invoice
+		self.assertEqual(sum(1 for g in gl if g.account == pi.credit_to), 1)
+		self.assertClose(by[u.USD_BANK], -1876800)
+		self.assertClose(by[fx], 40800)  # loss: debit
+		self.assertClose(pi.reload().outstanding_amount, 0)
+
+	def test_supplier_payment_btn_creditor_usd_bank_gain(self):
+		"""Paid at a lower rate than the invoice: the difference is a gain (credit to 41331)."""
+		pi = self._purchase_invoice(qty=0.4, rate=51000)
+		pe = self._supplier_payment(pi, 88)  # Nu. 1,795,200 out of the bank for USD 20,400
+		pe.submit()
+		_gl, by = self._gl_by_account(pe.name)
+		fx = frappe.db.get_value("Company", u.COMPANY, "exchange_gain_loss_account")
+		self.assertClose(by[pi.credit_to], 1836000)
+		self.assertClose(by[u.USD_BANK], -1795200)
+		self.assertClose(by[fx], -40800)  # gain: credit
+
+	def test_supplier_payment_cannot_exceed_invoice(self):
+		pi = self._purchase_invoice(qty=0.4, rate=51000)
+		pe = self._supplier_payment(pi, 92, paid_amount=999999)
+		self.assertClose(pe.paid_amount, 20400)  # derived from the invoice, not typed
+
+	def _split_receipt(self, po, rows, date=u.D1, submit=False):
+		"""Receipt made from the PO whose first row is the PO row and the others are added by hand."""
+		from erpnext.buying.doctype.purchase_order.purchase_order import make_purchase_receipt
+
+		pr = make_purchase_receipt(po.name)
+		pr.update({"posting_date": date, "set_posting_time": 1, "conversion_rate": 90})
+		pr.items[0].qty, pr.items[0].wallet = rows[0]
+		for qty, wallet in rows[1:]:
+			# a manually added row: only qty and wallet (the PO link, rate and zone are filled by the system)
+			pr.append("items", {"item_code": u.ITEM, "qty": qty, "wallet": wallet, "uom": "BTC", "stock_uom": "BTC",
+				"conversion_factor": 1, "warehouse": u.WAREHOUSE})
+		pr.insert()
+		if submit:
+			pr.submit()
+		return pr
+
+	def test_pr_one_po_received_over_two_wallets(self):
+		po = self._po(qty=1, rate=51000)
+		po.submit()
+		pr = self._split_receipt(po, [(0.5, u.WALLET_A), (0.5, u.WALLET_B)], submit=True)
+		second = pr.items[1]
+		self.assertEqual(second.purchase_order_item, po.items[0].name)  # linked to the PO row
+		self.assertClose(second.rate, 51000)  # rate from the PO
+		self.assertEqual(second.zone, po.custom_zone)
+		self.assertEqual(po.reload().per_received, 100)
+
+	def test_pr_rows_over_po_quantity_rejected(self):
+		po = self._po(qty=1, rate=51000)
+		po.submit()
+		with self.assertRaisesRegex(frappe.ValidationError, "more than the balance"):
+			self._split_receipt(po, [(0.5, u.WALLET_A), (0.6, u.WALLET_B)])
+
+	def test_pr_second_receipt_counts_first_receipt_rows(self):
+		po = self._po(qty=1, rate=51000)
+		po.submit()
+		self._split_receipt(po, [(0.5, u.WALLET_A), (0.3, u.WALLET_B)], submit=True)  # 0.8 received
+		with self.assertRaisesRegex(frappe.ValidationError, "more than the balance"):
+			self._split_receipt(po, [(0.1, u.WALLET_A), (0.2, u.WALLET_B)])  # 0.3 > 0.2 left
+		self._split_receipt(po, [(0.1, u.WALLET_A), (0.1, u.WALLET_B)], submit=True)  # exactly the balance
+
+	def test_po_item_balance_helper(self):
+		po = self._po(qty=1, rate=51000)
+		po.submit()
+		self.assertClose(receipts.get_po_item_balance(po.items[0].name), 1)
+		self._split_receipt(po, [(0.5, u.WALLET_A), (0.25, u.WALLET_B)], submit=True)
+		self.assertClose(receipts.get_po_item_balance(po.items[0].name), 0.25)

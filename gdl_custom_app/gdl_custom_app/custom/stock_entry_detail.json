@@ -117,6 +117,22 @@
    "fetch_from": "to_wallet.custodian",
    "read_only": 1,
    "no_copy": 1
+  },
+  {
+   "doctype": "Custom Field",
+   "dt": "Stock Entry Detail",
+   "module": null,
+   "owner": "Administrator",
+   "name": "Stock Entry Detail-custom_balance",
+   "fieldname": "custom_balance",
+   "fieldtype": "Float",
+   "label": "Balance",
+   "insert_after": "custom_wallet_custodian",
+   "read_only": 1,
+   "no_copy": 1,
+   "precision": "8",
+   "depends_on": "eval:doc.s_warehouse",
+   "description": "BTC available in the source Zone and Wallet, less the quantity on the rows above."
   }
  ],
  "custom_perms": [],

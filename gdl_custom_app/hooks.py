@@ -15,7 +15,7 @@ add_to_apps_screen = [
 	{
 		"name": "gdl_custom_app",
 		"logo": "/assets/gdl_custom_app/images/btc-inventory.svg",
-		"title": "BTC Inventory",
+		"title": "Digital Asset Process",
 		"route": "/desk/btc-inventory",
 	}
 ]
@@ -198,6 +198,10 @@ scheduler_events = {
 # override_whitelisted_methods = {
 # 	"frappe.desk.doctype.event.event.get_events": "gdl_custom_app.event.get_events"
 # }
+override_whitelisted_methods = {
+	# Stock Ledger shows BTC quantities with 8 decimals
+	"frappe.desk.query_report.run": "gdl_custom_app.overrides.query_report.run",
+}
 #
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,
@@ -283,6 +287,7 @@ doc_events = {
 			"gdl_custom_app.btc.receipts.validate_receipt",
 			"gdl_custom_app.btc.transfers.validate_transfer",
 			"gdl_custom_app.utils.fee.validate_fee",
+			"gdl_custom_app.btc.balance.set_row_balances",
 		],
 		"before_submit": "gdl_custom_app.btc.transfers.validate_availability",
 		"on_submit": [
@@ -298,7 +303,7 @@ doc_events = {
 	},
 	"Sales Invoice": {"validate": [_btc, "gdl_custom_app.btc.receipts.validate_sales_invoice"]},
 	"Delivery Note": {
-		"validate": ["gdl_custom_app.btc.receipts.validate_delivery_note", _btc],
+		"validate": ["gdl_custom_app.btc.receipts.validate_delivery_note", _btc, "gdl_custom_app.btc.balance.set_row_balances"],
 		"before_submit": "gdl_custom_app.btc.receipts.validate_delivery_availability",
 		"on_submit": "gdl_custom_app.btc.receipts.post_usd_ledger",
 		"on_cancel": "gdl_custom_app.btc.receipts.reverse_usd_ledger",

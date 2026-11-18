@@ -148,3 +148,32 @@ def allocate_wallet_qty(wallet, qty, item_code=None, warehouse=None, on_date=Non
 		if not remaining:
 			break
 	return rows
+
+
+@frappe.whitelist()
+def get_row_balance(item_code, warehouse, zone, wallet, on_date=None):
+	"""Available BTC (net of restrictions) for one zone + wallet; for the row Balance field."""
+	if not (item_code and warehouse and zone and wallet):
+		return 0
+	return get_available_qty(item_code, warehouse, zone, wallet, on_date or frappe.utils.today())
+
+
+def set_row_balances(doc, method=None):
+	"""validate: fill each source row's Balance = available for its zone + wallet minus the qty on the rows above
+	that draw from the same zone + wallet (so the second row shows what is left after the first)."""
+	if doc.docstatus != 0:
+		return
+	settings = frappe.get_cached_doc("GDL Setting")
+	if not settings.enable_btc_rules or not settings.btc_item:
+		return
+	is_stock_entry = doc.doctype == "Stock Entry"
+	used = {}
+	for row in doc.get("items") or []:
+		warehouse = row.get("s_warehouse") if is_stock_entry else row.get("warehouse")
+		if row.item_code != settings.btc_item or not warehouse or not row.get("zone") or not row.get("wallet"):
+			row.custom_balance = 0
+			continue
+		key = (row.zone, row.wallet)
+		available = get_available_qty(row.item_code, warehouse, row.zone, row.wallet, doc.posting_date or frappe.utils.today())
+		row.custom_balance = flt(available - used.get(key, 0), 9)
+		used[key] = flt(used.get(key, 0) + flt(row.get("transfer_qty") or row.qty), 9)

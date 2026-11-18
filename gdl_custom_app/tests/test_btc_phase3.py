@@ -193,6 +193,25 @@ class TestSales(BTCPhase1Base):
 			self.assertEqual(u.ledger(direction="In")[-1].transaction_type, plain)
 
 
+	def test_g14_mining_receipt_same_zone_wallet_twice_rejected(self):
+		with self.assertRaisesRegex(frappe.ValidationError, "already on row #1"):
+			u.make_receipt("Mining", rows=[{"qty": 0.2, "to_zone": u.ZONE_A, "to_wallet": u.WALLET_A},
+				{"qty": 0.3, "to_zone": u.ZONE_A, "to_wallet": u.WALLET_A}], date=u.D2, submit=False)
+		# a different wallet, or the same wallet in another zone, is fine
+		u.make_receipt("Mining", rows=[{"qty": 0.2, "to_zone": u.ZONE_A, "to_wallet": u.WALLET_A},
+			{"qty": 0.3, "to_zone": u.ZONE_A, "to_wallet": u.WALLET_B}], date=u.D2, submit=False)
+		u.make_receipt("Mining", rows=[{"qty": 0.2, "to_zone": u.ZONE_A, "to_wallet": u.WALLET_A},
+			{"qty": 0.3, "to_zone": u.ZONE_B, "to_wallet": u.WALLET_A}], date=u.D2, submit=False)
+
+	def test_g15_delivery_row_balance_counts_earlier_rows(self):
+		so = u.make_sales_order(qty=0.5)
+		dn = u.make_delivery(so, [(0.3, u.WALLET_A), (0.2, u.WALLET_A)], submit=False)
+		self.assertClose(dn.items[0].custom_balance, 1, 9)  # wallet holds 1 BTC
+		self.assertClose(dn.items[1].custom_balance, 0.7, 9)  # 1 - the 0.3 on the row above
+		from gdl_custom_app.btc import balance
+		self.assertClose(balance.get_row_balance(u.ITEM, u.WAREHOUSE, u.ZONE_A, u.WALLET_A, u.D3), 1, 9)
+		self.assertEqual(balance.get_row_balance(u.ITEM, u.WAREHOUSE, None, u.WALLET_A), 0)
+
 class TestReports(BTCPhase1Base):
 	def setUp(self):
 		super().setUp()
@@ -290,3 +309,18 @@ class TestBackdating(BTCPhase1Base):
 		with self.assertRaises(frappe.ValidationError):  # would leave the sale with no BTC
 			forty.cancel()
 		self.assertEqual(u.pool()[:2], (0.5, 20000))
+
+	def test_stock_ledger_btc_quantities_have_8_decimals(self):
+		from gdl_custom_app.overrides import query_report
+
+		u.make_receipt("Mining", qty=0.000005, usd_rate=50000, date=u.D2, time="09:00:00", zone=u.ZONE_A, wallet=u.WALLET_B)
+		filters = {"company": u.COMPANY, "from_date": u.D1, "to_date": u.D4, "item_code": [u.ITEM]}
+		result = query_report.run("Stock Ledger", filters=frappe.as_json(filters))
+		precision = {c["fieldname"]: c.get("precision") for c in result["columns"]
+			if c["fieldname"] in ("in_qty", "out_qty", "qty_after_transaction")}
+		self.assertEqual(precision, {"in_qty": 8, "out_qty": 8, "qty_after_transaction": 8})
+		# results without the BTC item keep ERPNext's normal precision
+		other = {"columns": [{"fieldname": "in_qty"}], "result": [{"item_code": "SOME-OTHER-ITEM"}]}
+		query_report.set_btc_qty_precision(other)
+		self.assertNotIn("precision", other["columns"][0])
+

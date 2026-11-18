@@ -1,7 +1,7 @@
 {
  "app": "gdl_custom_app",
  "charts": [],
- "content": "[{\"id\": \"hdr\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>BTC Inventory</b></span>\", \"col\": 12}}, {\"id\": \"c0\", \"type\": \"card\", \"data\": {\"card_name\": \"Transactions\", \"col\": 4}}, {\"id\": \"c1\", \"type\": \"card\", \"data\": {\"card_name\": \"Masters\", \"col\": 4}}, {\"id\": \"c2\", \"type\": \"card\", \"data\": {\"card_name\": \"Restrictions\", \"col\": 4}}, {\"id\": \"c3\", \"type\": \"card\", \"data\": {\"card_name\": \"Valuation\", \"col\": 4}}, {\"id\": \"c4\", \"type\": \"card\", \"data\": {\"card_name\": \"Reports\", \"col\": 4}}, {\"id\": \"c5\", \"type\": \"card\", \"data\": {\"card_name\": \"Settings\", \"col\": 4}}]",
+ "content": "[{\"id\": \"hdr\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Digital Asset Process</b></span>\", \"col\": 12}}, {\"id\": \"c0\", \"type\": \"card\", \"data\": {\"card_name\": \"Transactions\", \"col\": 4}}, {\"id\": \"c1\", \"type\": \"card\", \"data\": {\"card_name\": \"Masters\", \"col\": 4}}, {\"id\": \"c2\", \"type\": \"card\", \"data\": {\"card_name\": \"Restrictions\", \"col\": 4}}, {\"id\": \"c3\", \"type\": \"card\", \"data\": {\"card_name\": \"Valuation\", \"col\": 4}}, {\"id\": \"c4\", \"type\": \"card\", \"data\": {\"card_name\": \"Reports\", \"col\": 4}}, {\"id\": \"c5\", \"type\": \"card\", \"data\": {\"card_name\": \"Settings\", \"col\": 4}}]",
  "custom_blocks": [],
  "docstatus": 0,
  "doctype": "Workspace",
@@ -10,7 +10,7 @@
  "icon": "coins",
  "idx": 0,
  "is_hidden": 0,
- "label": "BTC Inventory",
+ "label": "Digital Asset Process",
  "links": [
   {
    "hidden": 0,
@@ -19,6 +19,39 @@
    "link_count": 5,
    "onboard": 0,
    "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Purchase Order",
+   "link_count": 0,
+   "link_to": "Purchase Order",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link",
+   "dependencies": ""
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Purchase Receipt",
+   "link_count": 0,
+   "link_to": "Purchase Receipt",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link",
+   "dependencies": ""
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Purchase Invoice",
+   "link_count": 0,
+   "link_to": "Purchase Invoice",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link",
+   "dependencies": ""
   },
   {
    "hidden": 0,
@@ -34,9 +67,9 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Purchase Receipt",
+   "label": "Sales Order",
    "link_count": 0,
-   "link_to": "Purchase Receipt",
+   "link_to": "Sales Order",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link",
@@ -292,7 +325,7 @@
    "doc_view": ""
   }
  ],
- "title": "BTC Inventory",
+ "title": "Digital Asset Process",
  "creation": "2026-11-04 09:00:00.000000",
  "modified": "2026-11-04 09:00:00.000000",
  "modified_by": "Administrator",

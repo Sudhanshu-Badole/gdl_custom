@@ -9,6 +9,10 @@
 // The server stays the hard check (btc/balance.py validate_available, utils/fee.py validate_fee,
 // btc/receipts.py prepare_stock_entry); the dialog only fills the grid rows.
 (() => {
+	// Loaded by several doctypes in one session; register the handlers once.
+	if (frappe.gdl_btc_balance) return;
+	frappe.gdl_btc_balance = true;
+
 	const METHOD = "gdl_custom_app.btc.balance.";
 	const PURPOSES = ["Material Receipt", "Material Issue", "Material Transfer"];
 
@@ -211,6 +215,69 @@
 		stock_entry_type: setup_stock_entry,
 		purpose: setup_stock_entry,
 	});
+
+	// ---------------------------------------------------------------- Row "Balance" field
+	// Balance = available BTC in the row's source Zone + Wallet, less the quantity on the rows above that
+	// draw from the same Zone + Wallet. The server sets the same value on save (btc/balance.py set_row_balances).
+
+	const source_warehouse = (frm, row) =>
+		frm.doc.doctype === "Stock Entry" ? row.s_warehouse : row.warehouse;
+
+	const refresh_balances = async (frm) => {
+		const defaults = await get_defaults();
+		if (!defaults || !defaults.item || frm.doc.docstatus !== 0) return;
+		const date = posting_date(frm);
+		const rows = (frm.doc.items || []).filter(
+			(r) => r.item_code === defaults.item && source_warehouse(frm, r) && r.zone && r.wallet
+		);
+
+		const available = {};
+		await Promise.all(
+			[...new Set(rows.map((r) => `${source_warehouse(frm, r)}|${r.zone}|${r.wallet}`))].map(async (key) => {
+				const [warehouse, zone, wallet] = key.split("|");
+				available[key] = flt(
+					await frappe.xcall(METHOD + "get_row_balance", {
+						item_code: defaults.item,
+						warehouse,
+						zone,
+						wallet,
+						on_date: date,
+					})
+				);
+			})
+		);
+
+		const used = {};
+		for (const row of frm.doc.items || []) {
+			const key = `${source_warehouse(frm, row)}|${row.zone}|${row.wallet}`;
+			const counted = rows.includes(row);
+			const balance = counted ? flt(available[key] - (used[key] || 0), 8) : 0;
+			if (counted) used[key] = flt((used[key] || 0) + flt(row.transfer_qty || row.qty), 8);
+			if (flt(row.custom_balance, 8) !== balance) {
+				await frappe.model.set_value(row.doctype, row.name, "custom_balance", balance);
+			}
+		}
+	};
+
+	let balance_timer;
+	const schedule_balances = (frm) => {
+		clearTimeout(balance_timer);
+		balance_timer = setTimeout(() => refresh_balances(frm), 300);
+	};
+
+	const balance_handlers = (extra) => ({
+		zone: (frm) => schedule_balances(frm),
+		wallet: (frm) => schedule_balances(frm),
+		qty: (frm) => schedule_balances(frm),
+		item_code: (frm) => schedule_balances(frm),
+		items_remove: (frm) => schedule_balances(frm),
+		...extra,
+	});
+
+	frappe.ui.form.on("Stock Entry Detail", balance_handlers({ s_warehouse: (frm) => schedule_balances(frm) }));
+	frappe.ui.form.on("Delivery Note Item", balance_handlers({ warehouse: (frm) => schedule_balances(frm) }));
+	frappe.ui.form.on("Stock Entry", { posting_date: schedule_balances, onload_post_render: schedule_balances });
+	frappe.ui.form.on("Delivery Note", { posting_date: schedule_balances, onload_post_render: schedule_balances });
 
 	// ---------------------------------------------------------------- Delivery Note (unchanged)
 

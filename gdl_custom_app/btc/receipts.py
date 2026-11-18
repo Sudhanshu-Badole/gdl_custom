@@ -112,6 +112,20 @@ def validate_receipt(doc, method=None):
 		for wallet_field in ("wallet", "to_wallet"):
 			validate_wallet(row, row.get(wallet_field), doc.company)
 
+	if doc.get("purpose") == "Material Receipt":
+		first_row = {}
+		for row in doc.get("items") or []:
+			if not is_btc_row(settings, row) or not row.get("to_wallet"):
+				continue
+			key = (row.get("to_zone"), row.to_wallet)
+			if key in first_row:
+				frappe.throw(
+					_("Row #{0}: Wallet {1} in Zone {2} is already on row #{3}. Add the quantity to that row instead.").format(
+						row.idx, row.to_wallet, row.get("to_zone"), first_row[key]
+					)
+				)
+			first_row[key] = row.idx
+
 
 def validate_zone_active(row, zone):
 	if zone and not frappe.get_cached_value("Internal Zone", zone, "is_active"):
@@ -143,6 +157,74 @@ def validate_purchase_receipt(doc, method=None):
 			row.zone = frappe.db.get_value("Purchase Order", row.purchase_order, "custom_zone")
 		validate_zone_active(row, row.get("zone"))
 		validate_wallet(row, row.get("wallet"), doc.company)
+	link_receipt_rows_to_purchase_order(doc, settings)
+	validate_receipt_against_purchase_order(doc, settings)
+
+
+def link_receipt_rows_to_purchase_order(doc, settings):
+	"""A BTC row added by hand to a receipt made from a PO belongs to the same PO item: copy the link and
+	the PO rate, so ERPNext's and our PO quantity checks cover it."""
+	btc_rows = [r for r in doc.items if is_btc_row(settings, r)]
+	linked = {r.purchase_order_item for r in btc_rows if r.get("purchase_order_item")}
+	if len(linked) != 1:
+		return  # nothing to copy from, or ambiguous
+	po_item = frappe.db.get_value(
+		"Purchase Order Item", next(iter(linked)), ["parent", "rate", "uom", "warehouse"], as_dict=True
+	)
+	if not po_item:
+		return
+	po_zone = frappe.db.get_value("Purchase Order", po_item.parent, "custom_zone")
+	for row in btc_rows:
+		if not row.get("purchase_order_item"):
+			row.purchase_order_item = next(iter(linked))
+			row.purchase_order = po_item.parent
+		if not row.get("zone"):
+			row.zone = po_zone
+		if not flt(row.get("rate")):
+			row.rate = po_item.rate
+
+
+@frappe.whitelist()
+def get_po_item_balance(purchase_order_item, exclude_receipt=None):
+	"""Form helper: BTC still to receive on a PO item (ordered - received on other submitted receipts)."""
+	po_qty = flt(frappe.db.get_value("Purchase Order Item", purchase_order_item, "qty"), 9)
+	received = flt(
+		frappe.db.sql(
+			"""select coalesce(sum(qty), 0) from `tabPurchase Receipt Item`
+			where purchase_order_item=%s and docstatus=1 and parent != %s""",
+			(purchase_order_item, exclude_receipt or ""),
+		)[0][0],
+		9,
+	)
+	return flt(po_qty - received, 9)
+
+
+def validate_receipt_against_purchase_order(doc, settings):
+	"""Total received per PO item (all rows here + other submitted receipts) cannot exceed the PO quantity."""
+	requested = {}
+	for row in doc.items:
+		if is_btc_row(settings, row) and row.get("purchase_order_item"):
+			requested[row.purchase_order_item] = requested.get(row.purchase_order_item, 0) + flt(row.qty)
+	for po_item_name, qty in requested.items():
+		po_qty, po_name = frappe.db.get_value("Purchase Order Item", po_item_name, ["qty", "parent"])
+		already = flt(
+			frappe.db.sql(
+				"""select coalesce(sum(qty), 0) from `tabPurchase Receipt Item`
+				where purchase_order_item=%s and docstatus=1 and parent != %s""",
+				(po_item_name, doc.name or ""),
+			)[0][0],
+			9,
+		)
+		if flt(already + qty, 9) > flt(po_qty, 9):
+			frappe.throw(
+				_(
+					"Purchase Order {0}: {1} BTC ordered, {2} BTC already received on other receipts; this receipt has {3} BTC, "
+					"which is {4} BTC more than the balance of {5} BTC."
+				).format(
+					po_name, flt(po_qty, 9), already, flt(qty, 9), flt(already + qty - po_qty, 9), flt(po_qty - already, 9)
+				),
+				title=_("Over Receipt"),
+			)
 
 
 def usd_valuation_currency():
@@ -299,48 +381,66 @@ def validate_sales_invoice(doc, method=None):
 			frappe.throw(_("Row #{0}: a BTC Sales Invoice must be in USD.").format(row.idx))
 
 
-def get_btc_payment_split(doc):
-	"""USD receipt for a BTN-debtor BTC invoice payment.
+# payment_type -> (party type, invoice doctype, invoice item doctype)
+BTC_PAYMENT_KINDS = {
+	"Receive": ("Customer", "Sales Invoice", "Sales Invoice Item"),
+	"Pay": ("Supplier", "Purchase Invoice", "Purchase Invoice Item"),
+}
 
-	Returns (paid_btn, received_usd) or None when this payment is not a BTC invoice receipt. The USD
-	received is the invoice's USD value for the BTN being cleared, so the exchange difference between
-	the invoice rate and the payment rate is left for ERPNext's Exchange Gain/Loss line (41331).
+
+def get_btc_payment_split(doc):
+	"""Amounts for a payment of a BTC invoice booked in BTN but settled through a USD bank account.
+
+	Returns {"paid_amount", "received_amount", "fixed_rate"} or None when this is not such a payment.
+	The USD side is the invoice's USD value for the BTN being cleared; the BTN side is what the party
+	account holds. Whatever differs between the invoice rate and the payment rate is left for ERPNext's
+	Exchange Gain/Loss line (41331).
+	  Receive (customer): pays BTN from the debtor account, receives USD into the bank.
+	  Pay (supplier): pays USD from the bank, receives BTN into the creditor account.
 	"""
 	settings = get_settings()
-	if not settings.enable_btc_rules or doc.payment_type != "Receive" or doc.party_type != "Customer":
+	kind = BTC_PAYMENT_KINDS.get(doc.payment_type)
+	if not settings.enable_btc_rules or not kind or doc.party_type != kind[0]:
 		return None
+	party_type, invoice_doctype, item_doctype = kind
 	refs = [r for r in doc.get("references") or [] if flt(r.allocated_amount)]
-	if not refs or any(r.reference_doctype != "Sales Invoice" for r in refs):
+	if not refs or any(r.reference_doctype != invoice_doctype for r in refs):
 		return None
 	company_currency = frappe.get_cached_value("Company", doc.company, "default_currency")
-	if doc.paid_from_account_currency != company_currency or doc.paid_to_account_currency == company_currency:
-		return None  # a USD debtor is handled by ERPNext as is
+	receive = doc.payment_type == "Receive"
+	party_currency, bank_currency = (
+		(doc.paid_from_account_currency, doc.paid_to_account_currency)
+		if receive
+		else (doc.paid_to_account_currency, doc.paid_from_account_currency)
+	)
+	if party_currency != company_currency or bank_currency == company_currency:
+		return None  # a USD party account is handled by ERPNext as is
 
-	paid_btn = received_usd = 0.0
+	btn = usd = 0.0
 	for ref in refs:
-		si = frappe.db.get_value(
-			"Sales Invoice", ref.reference_name, ["currency", "grand_total", "base_grand_total"], as_dict=True
+		invoice = frappe.db.get_value(
+			invoice_doctype, ref.reference_name, ["currency", "grand_total", "base_grand_total"], as_dict=True
 		)
-		if not si or si.currency != doc.paid_to_account_currency or not flt(si.base_grand_total):
+		if not invoice or invoice.currency != bank_currency or not flt(invoice.base_grand_total):
 			return None
-		if not frappe.db.exists(
-			"Sales Invoice Item", {"parent": ref.reference_name, "item_code": settings.btc_item}
-		):
+		if not frappe.db.exists(item_doctype, {"parent": ref.reference_name, "item_code": settings.btc_item}):
 			return None
-		paid_btn += flt(ref.allocated_amount)
-		received_usd += flt(ref.allocated_amount) * flt(si.grand_total) / flt(si.base_grand_total)
-	return paid_btn, received_usd
+		btn += flt(ref.allocated_amount)
+		usd += flt(ref.allocated_amount) * flt(invoice.grand_total) / flt(invoice.base_grand_total)
+
+	if receive:
+		return {"paid_amount": btn, "received_amount": usd, "fixed_rate": "source_exchange_rate"}
+	return {"paid_amount": usd, "received_amount": btn, "fixed_rate": "target_exchange_rate"}
 
 
 def set_btc_payment_amounts(doc, method=None):
-	"""before_validate: pay in BTN what the invoice holds, receive its USD value (no over-receipt)."""
+	"""before_validate: derive the BTN and USD amounts from the invoice (no over-payment or over-receipt)."""
 	split = get_btc_payment_split(doc)
 	if not split:
 		return
-	paid_btn, received_usd = split
-	doc.source_exchange_rate = 1
-	doc.paid_amount = flt(paid_btn, doc.precision("paid_amount"))
-	doc.received_amount = flt(received_usd, doc.precision("received_amount"))
+	doc.set(split["fixed_rate"], 1)  # the BTN (party) side always has rate 1
+	doc.paid_amount = flt(split["paid_amount"], doc.precision("paid_amount"))
+	doc.received_amount = flt(split["received_amount"], doc.precision("received_amount"))
 
 
 @frappe.whitelist()
@@ -350,4 +450,4 @@ def get_btc_payment_amounts(doc):
 	split = get_btc_payment_split(doc)
 	if not split:
 		return None
-	return {"paid_amount": flt(split[0], 2), "received_amount": flt(split[1], 2)}
+	return {"paid_amount": flt(split["paid_amount"], 2), "received_amount": flt(split["received_amount"], 2)}
