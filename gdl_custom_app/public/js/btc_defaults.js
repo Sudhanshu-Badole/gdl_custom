@@ -79,6 +79,35 @@
 		},
 	});
 
+	// Material Receipt: the same To Zone + To Wallet cannot be on two rows (the server checks again on save).
+	const duplicate_receipt_row = (frm, cdt, cdn) => {
+		const row = locals[cdt][cdn];
+		if (frm.doc.purpose !== "Material Receipt" || !row.to_zone || !row.to_wallet) return null;
+		return (frm.doc.items || []).find(
+			(r) => r.name !== cdn && r.to_zone === row.to_zone && r.to_wallet === row.to_wallet
+		);
+	};
+
+	const reject_duplicate_receipt_row = async (frm, cdt, cdn) => {
+		const other = duplicate_receipt_row(frm, cdt, cdn);
+		if (!other) return;
+		const row = locals[cdt][cdn];
+		frappe.msgprint(
+			__("Row #{0}: Wallet {1} in Zone {2} is already on row #{3}. Add the quantity to that row instead.", [
+				row.idx,
+				row.to_wallet,
+				row.to_zone,
+				other.idx,
+			])
+		);
+		await frappe.model.set_value(cdt, cdn, "to_wallet", "");
+	};
+
+	frappe.ui.form.on("Stock Entry Detail", {
+		to_wallet: reject_duplicate_receipt_row,
+		to_zone: reject_duplicate_receipt_row,
+	});
+
 	// Stock Entry Material Receipt (Mining etc.): new row = same item, UOM, USD rate and target zone.
 	frappe.ui.form.on("Stock Entry Detail", {
 		items_add: async (frm, cdt, cdn) => {

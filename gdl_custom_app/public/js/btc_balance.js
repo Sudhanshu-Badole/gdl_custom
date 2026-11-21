@@ -187,6 +187,19 @@
 					frappe.msgprint(__("Quantity and USD Rate must be greater than zero."));
 					return;
 				}
+				const existing = (frm.doc.items || []).find(
+					(r) => r.to_zone === values.to_zone && r.to_wallet === values.to_wallet
+				);
+				if (existing) {
+					frappe.msgprint(
+						__("Wallet {0} in Zone {1} is already on row #{2}. Add the quantity to that row instead.", [
+							values.to_wallet,
+							values.to_zone,
+							existing.idx,
+						])
+					);
+					return;
+				}
 				dialog.hide();
 				const row = target_row(frm, defaults.item);
 				await set_values(row, {
