@@ -439,6 +439,12 @@ class TestPurchase(BTCPhase1Base):
 		self.assertEqual(second.zone, po.custom_zone)
 		self.assertEqual(po.reload().per_received, 100)
 
+	def test_pr_same_zone_wallet_twice_rejected(self):
+		po = self._po(qty=1, rate=51000)
+		po.submit()
+		with self.assertRaisesRegex(frappe.ValidationError, "already on row #1"):
+			self._split_receipt(po, [(0.5, u.WALLET_A), (0.5, u.WALLET_A)])
+
 	def test_pr_rows_over_po_quantity_rejected(self):
 		po = self._po(qty=1, rate=51000)
 		po.submit()

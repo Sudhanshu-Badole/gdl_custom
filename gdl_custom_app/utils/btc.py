@@ -151,7 +151,12 @@ def _validate_btc_row(settings, row, ctx):
 					)
 				)
 
-	for fieldname in REQUIRED_TAGS[ctx["kind"]]:
+	required = REQUIRED_TAGS[ctx["kind"]]
+	if row.get("parenttype") == "Sales Invoice":
+		# The Delivery Note issues the BTC (possibly from several wallets); the invoice only needs the zone
+		# for its cost center.
+		required = ("zone",)
+	for fieldname in required:
 		if not row.get(fieldname):
 			frappe.throw(_("Row #{0}: {1} is mandatory for BTC.").format(row.idx, FIELD_LABELS[fieldname]))
 

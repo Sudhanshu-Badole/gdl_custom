@@ -1,5 +1,5 @@
 app_name = "gdl_custom_app"
-app_title = "Gdl Custom App"
+app_title = "Digital Asset Process"
 app_publisher = "Sudhanshu Badole"
 app_description = "GDL Customization"
 app_email = "admin@corenex.in"
@@ -50,9 +50,10 @@ doctype_js = {
 		"public/js/btc_fee_links.js",
 	],
 	"Sales Invoice": "public/js/btc_cost_center.js",
-	"Delivery Note": ["public/js/btc_cost_center.js", "public/js/btc_balance.js"],
+	"Delivery Note": ["public/js/btc_cost_center.js", "public/js/btc_balance.js", "public/js/btc_defaults.js"],
 	"Purchase Receipt": ["public/js/btc_cost_center.js", "public/js/btc_defaults.js"],
 	"Purchase Order": "public/js/btc_defaults.js",
+	"Sales Order": "public/js/btc_defaults.js",
 	"Stock Reconciliation": "public/js/btc_cost_center.js",
 	"Item": "public/js/item_code.js",
 	"Payment Entry": "public/js/btc_payment.js",

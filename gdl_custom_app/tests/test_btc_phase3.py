@@ -92,6 +92,49 @@ class TestSales(BTCPhase1Base):
 		self.assertEqual(len(u.ledger(direction="Out")), 1)  # stock belongs to the DN
 		self.assertClose(u.wallet_balance(u.WALLET_A), 1 - 0.399, 9)
 
+	def _delivery_with_unlinked_rows(self, so, qtys, submit=True):
+		"""A delivery made from the SO whose extra rows were added by hand (no SO link, no rate)."""
+		dn = u.make_delivery(so, [(qtys[0], u.WALLET_A)], submit=False)
+		for qty in qtys[1:]:
+			row = dn.append("items", {**dn.items[0].as_dict(), "name": None, "idx": None})
+			row.update({"qty": qty, "wallet": u.WALLET_B, "so_detail": None, "against_sales_order": None, "rate": 0})
+		dn.save()
+		if submit:
+			dn.submit()
+		return dn
+
+	def test_dn_hand_added_row_linked_to_so_and_takes_its_rate(self):
+		so = u.make_sales_order(qty=1, rate=70000)
+		dn = self._delivery_with_unlinked_rows(so, [0.5, 0.25], submit=False)
+		self.assertEqual(dn.items[1].so_detail, so.items[0].name)
+		self.assertClose(dn.items[1].rate, 70000)
+
+	def test_dn_rows_over_so_quantity_rejected(self):
+		so = u.make_sales_order(qty=1)
+		with self.assertRaisesRegex(frappe.ValidationError, "more than the balance"):
+			self._delivery_with_unlinked_rows(so, [0.5, 0.6])
+
+	def test_dn_second_delivery_counts_first_delivery_rows(self):
+		u.make_receipt(qty=1, usd_rate=50800, date=u.D1, wallet=u.WALLET_B)
+		so = u.make_sales_order(qty=1)
+		self._delivery_with_unlinked_rows(so, [0.5, 0.3])  # 0.8 delivered
+		with self.assertRaisesRegex(frappe.ValidationError, "more than the balance"):
+			self._delivery_with_unlinked_rows(so, [0.1, 0.2], submit=False)
+		self._delivery_with_unlinked_rows(so, [0.1, 0.1])  # exactly the balance
+		self.assertEqual(frappe.db.get_value("Sales Order", so.name, "per_delivered"), 100)
+
+	def test_invoice_needs_zone_not_wallet(self):
+		u.make_receipt(qty=1, usd_rate=50800, date=u.D1, wallet=u.WALLET_B)
+		so = u.make_sales_order(qty=0.2)
+		dn = self._delivery_with_unlinked_rows(so, [0.1, 0.1])
+		si = u.make_invoice(dn, submit=False)
+		for row in si.items:
+			row.wallet = None
+		si.save()  # no source wallet needed
+		si.items[0].zone = None
+		with self.assertRaisesRegex(frappe.ValidationError, "Source Zone"):
+			si.save()
+
 	def test_invoice_must_not_issue_stock_or_skip_delivery(self):
 		so = u.make_sales_order(qty=0.1)
 		dn = u.make_delivery(so, [(0.1, u.WALLET_A)])

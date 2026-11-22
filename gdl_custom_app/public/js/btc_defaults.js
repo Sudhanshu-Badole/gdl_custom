@@ -127,4 +127,75 @@
 			});
 		},
 	});
+	// Purchase Order / Sales Order: Zone and Reporting Bucket show the mandatory marker once a BTC row is on
+	// the order (the server enforces it on save).
+	const sync_mandatory = async (frm) => {
+		const d = await get_defaults();
+		if (!d || !d.item) return;
+		const has_btc = (frm.doc.items || []).some((r) => r.item_code === d.item);
+		const fields = frm.doctype === "Purchase Order" ? ["custom_zone", "custom_reporting_bucket"] : ["custom_reporting_bucket"];
+		fields.forEach((field) => frm.toggle_reqd(field, has_btc));
+	};
+	for (const doctype of ["Purchase Order", "Sales Order"]) {
+		frappe.ui.form.on(doctype, { refresh: sync_mandatory, items_remove: sync_mandatory });
+		frappe.ui.form.on(`${doctype} Item`, { item_code: (frm) => sync_mandatory(frm) });
+	}
+
+	// Purchase Receipt: the same Zone + Wallet cannot be on two rows (the server checks again on save).
+	const reject_duplicate_receipt_wallet = async (frm, cdt, cdn) => {
+		const row = locals[cdt][cdn];
+		if (!row.zone || !row.wallet) return;
+		const other = (frm.doc.items || []).find(
+			(r) => r.name !== cdn && r.zone === row.zone && r.wallet === row.wallet
+		);
+		if (!other) return;
+		frappe.msgprint(
+			__("Row #{0}: Wallet {1} in Zone {2} is already on row #{3}. Update the quantity on that row instead.", [
+				row.idx,
+				row.wallet,
+				row.zone,
+				other.idx,
+			])
+		);
+		await frappe.model.set_value(cdt, cdn, "wallet", "");
+	};
+	frappe.ui.form.on("Purchase Receipt Item", {
+		wallet: reject_duplicate_receipt_wallet,
+		zone: reject_duplicate_receipt_wallet,
+	});
+
+	// Delivery Note from a Sales Order: new BTC row = same item, rate and SO link, qty = what is still to deliver.
+	frappe.ui.form.on("Delivery Note Item", {
+		item_code: fill(["warehouse"]),
+		items_add: async (frm, cdt, cdn) => {
+			const row = locals[cdt][cdn];
+			const prev = previous_row(frm, cdt, cdn);
+			if (row.item_code || !prev) return;
+			const d = await get_defaults();
+			if (!d || !d.item || prev.item_code !== d.item) return;
+
+			let qty;
+			if (prev.so_detail) {
+				const entered = (frm.doc.items || [])
+					.filter((r) => r.name !== cdn && r.so_detail === prev.so_detail)
+					.reduce((sum, r) => sum + flt(r.qty), 0);
+				const left = await frappe.xcall("gdl_custom_app.btc.receipts.get_so_item_balance", {
+					so_detail: prev.so_detail,
+					exclude_delivery: frm.doc.name,
+				});
+				qty = Math.max(0, flt(left - entered, 8));
+			}
+			await frappe.model.set_value(cdt, cdn, "item_code", prev.item_code);
+			await copy_fields(cdt, cdn, {
+				uom: prev.uom,
+				against_sales_order: prev.against_sales_order,
+				so_detail: prev.so_detail,
+				warehouse: prev.warehouse,
+				zone: prev.zone,
+				cost_center: prev.cost_center,
+				rate: prev.rate,
+				qty,
+			});
+		},
+	});
 })();

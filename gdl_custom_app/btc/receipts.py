@@ -158,7 +158,24 @@ def validate_purchase_receipt(doc, method=None):
 		validate_zone_active(row, row.get("zone"))
 		validate_wallet(row, row.get("wallet"), doc.company)
 	link_receipt_rows_to_purchase_order(doc, settings)
+	reject_duplicate_zone_wallet_rows(doc, settings)
 	validate_receipt_against_purchase_order(doc, settings)
+
+
+def reject_duplicate_zone_wallet_rows(doc, settings):
+	"""One row per Zone + Wallet: a second row for the same pair must be added to the first row's quantity."""
+	first_row = {}
+	for row in doc.items:
+		if not is_btc_row(settings, row) or not row.get("wallet"):
+			continue
+		key = (row.get("zone"), row.wallet)
+		if key in first_row:
+			frappe.throw(
+				_("Row #{0}: Wallet {1} in Zone {2} is already on row #{3}. Update the quantity on that row instead.").format(
+					row.idx, row.wallet, row.get("zone"), first_row[key]
+				)
+			)
+		first_row[key] = row.idx
 
 
 def link_receipt_rows_to_purchase_order(doc, settings):
@@ -347,6 +364,66 @@ def validate_delivery_note(doc, method=None):
 			frappe.throw(_("Row #{0}: a BTC Delivery Note must be in USD.").format(row.idx))
 		validate_zone_active(row, row.get("zone"))
 		validate_wallet(row, row.get("wallet"), doc.company)
+	link_delivery_rows_to_sales_order(doc, settings)
+	validate_delivery_against_sales_order(doc, settings)
+
+
+def link_delivery_rows_to_sales_order(doc, settings):
+	"""A BTC row added by hand to a delivery made from a Sales Order belongs to the same SO item: copy the
+	link and the SO rate, so ERPNext's delivered quantity and our checks cover it."""
+	btc_rows = [r for r in doc.items if is_btc_row(settings, r)]
+	linked = {r.so_detail for r in btc_rows if r.get("so_detail")}
+	if len(linked) != 1:
+		return  # nothing to copy from, or ambiguous
+	so_item = frappe.db.get_value("Sales Order Item", next(iter(linked)), ["parent", "rate"], as_dict=True)
+	if not so_item:
+		return
+	for row in btc_rows:
+		if not row.get("so_detail"):
+			row.so_detail = next(iter(linked))
+			row.against_sales_order = so_item.parent
+		if not flt(row.get("rate")):
+			row.rate = so_item.rate
+
+
+@frappe.whitelist()
+def get_so_item_balance(so_detail, exclude_delivery=None):
+	"""Form helper: BTC still to deliver on a SO item (ordered - delivered on other submitted delivery notes)."""
+	so_qty = flt(frappe.db.get_value("Sales Order Item", so_detail, "qty"), 9)
+	return flt(so_qty - _delivered_on_other_notes(so_detail, exclude_delivery), 9)
+
+
+def _delivered_on_other_notes(so_detail, exclude_delivery=None):
+	return flt(
+		frappe.db.sql(
+			"""select coalesce(sum(i.qty), 0) from `tabDelivery Note Item` i
+			join `tabDelivery Note` d on d.name = i.parent
+			where i.so_detail=%s and i.docstatus=1 and d.is_return=0 and i.parent != %s""",
+			(so_detail, exclude_delivery or ""),
+		)[0][0],
+		9,
+	)
+
+
+def validate_delivery_against_sales_order(doc, settings):
+	"""Total delivered per SO item (all rows here + other submitted delivery notes) cannot exceed the SO quantity."""
+	requested = {}
+	for row in doc.items:
+		if is_btc_row(settings, row) and row.get("so_detail"):
+			requested[row.so_detail] = requested.get(row.so_detail, 0) + flt(row.qty)
+	for so_detail, qty in requested.items():
+		so_qty, so_name = frappe.db.get_value("Sales Order Item", so_detail, ["qty", "parent"])
+		already = _delivered_on_other_notes(so_detail, doc.name)
+		if flt(already + qty, 9) > flt(so_qty, 9):
+			frappe.throw(
+				_(
+					"Sales Order {0}: {1} BTC ordered, {2} BTC already delivered on other delivery notes; this delivery has "
+					"{3} BTC, which is {4} BTC more than the balance of {5} BTC."
+				).format(
+					so_name, flt(so_qty, 9), already, flt(qty, 9), flt(already + qty - so_qty, 9), flt(so_qty - already, 9)
+				),
+				title=_("Over Delivery"),
+			)
 
 
 def validate_delivery_availability(doc, method=None):
