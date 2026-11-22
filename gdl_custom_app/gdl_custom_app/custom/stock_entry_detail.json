@@ -70,6 +70,7 @@
    "fieldname": "custom_transfer_status",
    "fieldtype": "Select",
    "label": "BTC Status",
+   "default": "Available",
    "options": "\nAvailable\nTrading\nLoan\nPledged",
    "insert_after": "custom_usd_rate",
    "depends_on": "eval:doc.t_warehouse",

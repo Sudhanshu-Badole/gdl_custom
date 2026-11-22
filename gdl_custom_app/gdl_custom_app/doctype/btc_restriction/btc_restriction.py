@@ -77,6 +77,8 @@ def release_restriction(name, qty=None, reason=None):
 	if flt(doc.qty - doc.released_qty, 9) == 0:
 		doc.state = "Released"
 	doc.save()
+	if doc.state == "Released":
+		mark_source_row_available(doc)
 	return doc.name
 
 
@@ -98,6 +100,14 @@ def extend_restriction(name, new_expiry, reason=None):
 	return doc.name
 
 
+def mark_source_row_available(doc):
+	"""The BTC is unrestricted again: show the Stock Entry row that created the restriction as Available."""
+	if doc.source_doctype == "Stock Entry" and doc.source_detail:
+		frappe.db.set_value(
+			"Stock Entry Detail", doc.source_detail, "custom_transfer_status", "Available", update_modified=False
+		)
+
+
 def expire_restrictions(today=None):
 	"""Daily job: restrictions whose expiry date has passed become Available. Idempotent."""
 	today = getdate(today or nowdate())
@@ -115,6 +125,7 @@ def expire_restrictions(today=None):
 		doc.released_qty = doc.qty
 		doc.state = "Expired"
 		doc.save(ignore_permissions=True)
+		mark_source_row_available(doc)
 	if names:
 		frappe.logger("gdl_btc").info(f"Expired {len(names)} BTC restriction(s): {names}")
 	return names

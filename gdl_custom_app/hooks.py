@@ -43,7 +43,12 @@ add_to_apps_screen = [
 
 # include js in doctype views
 doctype_js = {
-	"Stock Entry": ["public/js/btc_cost_center.js", "public/js/btc_defaults.js", "public/js/btc_balance.js"],
+	"Stock Entry": [
+		"public/js/btc_cost_center.js",
+		"public/js/btc_defaults.js",
+		"public/js/btc_balance.js",
+		"public/js/btc_fee_links.js",
+	],
 	"Sales Invoice": "public/js/btc_cost_center.js",
 	"Delivery Note": ["public/js/btc_cost_center.js", "public/js/btc_balance.js"],
 	"Purchase Receipt": ["public/js/btc_cost_center.js", "public/js/btc_defaults.js"],
