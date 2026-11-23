@@ -1,0 +1,417 @@
+{
+ "actions": [],
+ "autoname": "format:SEP-REQ-{YYYY}-{#####}",
+ "creation": "2026-11-23 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "employee_section",
+  "employee",
+  "employee_name",
+  "designation",
+  "employee_grade",
+  "branch",
+  "column_break_emp",
+  "company",
+  "department",
+  "employment_type",
+  "date_of_joining",
+  "date_of_retirement",
+  "people_section",
+  "reports_to",
+  "supervisor_name",
+  "supervisor_user",
+  "column_break_people",
+  "reviewer",
+  "reviewer_name",
+  "employee_user",
+  "separation_section",
+  "separation_type",
+  "resignation_date",
+  "last_working_date",
+  "reason_for_leaving",
+  "column_break_sep",
+  "notice_days",
+  "notice_served_days",
+  "notice_shortfall_days",
+  "resignation_letter",
+  "personal_email",
+  "handover_status",
+  "obligation_section",
+  "open_salary_advance",
+  "open_travel_advance",
+  "column_break_obl",
+  "has_training_study_undertaking",
+  "is_suspended_or_under_investigation",
+  "obligation_treatment",
+  "decision_section",
+  "decision_reason",
+  "column_break_dec",
+  "employee_separation",
+  "workflow_state"
+ ],
+ "fields": [
+  {
+   "fieldname": "employee_section",
+   "fieldtype": "Section Break",
+   "label": "Employee"
+  },
+  {
+   "ignore_user_permissions": 1,
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Employee",
+   "options": "Employee",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "employee.employee_name",
+   "fieldname": "employee_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Employee Name",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "employee.designation",
+   "fieldname": "designation",
+   "fieldtype": "Data",
+   "label": "Designation",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "employee.grade",
+   "fieldname": "employee_grade",
+   "fieldtype": "Data",
+   "label": "Grade",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "employee.branch",
+   "fieldname": "branch",
+   "fieldtype": "Data",
+   "label": "Office",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_emp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "employee.company",
+   "fieldname": "company",
+   "fieldtype": "Data",
+   "label": "Company",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "employee.department",
+   "fieldname": "department",
+   "fieldtype": "Data",
+   "label": "Department",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "employee.employment_type",
+   "fieldname": "employment_type",
+   "fieldtype": "Data",
+   "label": "Employment Type",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "employee.date_of_joining",
+   "fieldname": "date_of_joining",
+   "fieldtype": "Date",
+   "label": "Date of Joining",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "employee.date_of_retirement",
+   "fieldname": "date_of_retirement",
+   "fieldtype": "Date",
+   "label": "Superannuation Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "people_section",
+   "fieldtype": "Section Break",
+   "label": "Supervisor and Reviewer"
+  },
+  {
+   "ignore_user_permissions": 1,
+   "fetch_from": "employee.reports_to",
+   "fieldname": "reports_to",
+   "fieldtype": "Link",
+   "label": "Immediate Supervisor",
+   "options": "Employee",
+   "read_only": 1,
+   "hidden": 1
+  },
+  {
+   "fetch_from": "reports_to.user_id",
+   "fieldname": "supervisor_user",
+   "fieldtype": "Data",
+   "label": "Supervisor User",
+   "options": "Email",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_people",
+   "fieldtype": "Column Break"
+  },
+  {
+   "ignore_user_permissions": 1,
+   "fetch_from": "employee.custom_reviewer",
+   "fieldname": "reviewer",
+   "fieldtype": "Link",
+   "label": "Reviewer",
+   "options": "Employee",
+   "read_only": 1,
+   "hidden": 1
+  },
+  {
+   "fetch_from": "employee.user_id",
+   "fieldname": "employee_user",
+   "fieldtype": "Data",
+   "label": "Employee User",
+   "options": "Email",
+   "read_only": 1
+  },
+  {
+   "fieldname": "separation_section",
+   "fieldtype": "Section Break",
+   "label": "Separation Details"
+  },
+  {
+   "ignore_user_permissions": 1,
+   "fieldname": "separation_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Separation Type",
+   "options": "Separation Type",
+   "reqd": 1
+  },
+  {
+   "default": "Today",
+   "fieldname": "resignation_date",
+   "fieldtype": "Date",
+   "label": "Resignation Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "last_working_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Last Working Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "reason_for_leaving",
+   "fieldtype": "Small Text",
+   "label": "Reason for Leaving",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_sep",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Regular: 30, Contract: 60, Probationer: 7. Defaulted from the employment type.",
+   "fieldname": "notice_days",
+   "fieldtype": "Int",
+   "label": "Notice Period (Days)"
+  },
+  {
+   "fieldname": "notice_served_days",
+   "fieldtype": "Int",
+   "label": "Notice Served (Days)",
+   "read_only": 1
+  },
+  {
+   "description": "Pay in lieu is deducted manually by HR in the Full and Final Statement.",
+   "fieldname": "notice_shortfall_days",
+   "fieldtype": "Int",
+   "label": "Notice Shortfall (Days)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "resignation_letter",
+   "fieldtype": "Attach",
+   "label": "Resignation Letter"
+  },
+  {
+   "fieldname": "personal_email",
+   "fieldtype": "Data",
+   "label": "Personal Email ID",
+   "options": "Email",
+   "reqd": 1
+  },
+  {
+   "default": "Not Started",
+   "fieldname": "handover_status",
+   "fieldtype": "Select",
+   "label": "Handover Status",
+   "options": "Not Started\nIn Progress\nCompleted",
+   "reqd": 1
+  },
+  {
+   "fieldname": "obligation_section",
+   "fieldtype": "Section Break",
+   "label": "Open Obligations"
+  },
+  {
+   "default": "0",
+   "fieldname": "open_salary_advance",
+   "fieldtype": "Check",
+   "label": "Outstanding Salary Advance",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "open_travel_advance",
+   "fieldtype": "Check",
+   "label": "Outstanding Travel Advance",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_obl",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "has_training_study_undertaking",
+   "fieldtype": "Check",
+   "label": "Training / Study Leave Undertaking",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_suspended_or_under_investigation",
+   "fieldtype": "Check",
+   "label": "Suspended / Under Investigation",
+   "read_only": 1
+  },
+  {
+   "description": "Recorded by the approver when a training or study undertaking is open.",
+   "fieldname": "obligation_treatment",
+   "fieldtype": "Select",
+   "label": "Undertaking Treatment",
+   "options": "\nServe Out\nRefund"
+  },
+  {
+   "fieldname": "decision_section",
+   "fieldtype": "Section Break",
+   "label": "Decision"
+  },
+  {
+   "description": "Mandatory when rejecting or withholding. Enter it before clicking the action.",
+   "fieldname": "decision_reason",
+   "fieldtype": "Small Text",
+   "label": "Approver Comment / Reason"
+  },
+  {
+   "fieldname": "column_break_dec",
+   "fieldtype": "Column Break"
+  },
+  {
+   "ignore_user_permissions": 1,
+   "fieldname": "employee_separation",
+   "fieldtype": "Link",
+   "label": "Employee Separation",
+   "no_copy": 1,
+   "options": "Employee Separation",
+   "read_only": 1
+  },
+  {
+   "ignore_user_permissions": 1,
+   "allow_on_submit": 1,
+   "fieldname": "workflow_state",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Workflow State",
+   "no_copy": 1,
+   "options": "Workflow State"
+  },
+  {
+   "fetch_from": "reports_to.employee_name",
+   "fieldname": "supervisor_name",
+   "fieldtype": "Data",
+   "label": "Supervisor Name",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "reviewer.employee_name",
+   "fieldname": "reviewer_name",
+   "fieldtype": "Data",
+   "label": "Reviewer Name",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-11-23 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "GDL HR",
+ "name": "Separation Request",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR User",
+   "write": 1
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "HRA"
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "CEO",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Employee",
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "employee_name",
+ "track_changes": 1
+}

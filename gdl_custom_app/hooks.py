@@ -164,7 +164,18 @@ doctype_js = {
 # ---------------
 
 scheduler_events = {
-	"daily": ["gdl_custom_app.gdl_custom_app.doctype.btc_restriction.btc_restriction.expire_restrictions"],
+	"daily": [
+		"gdl_custom_app.gdl_custom_app.doctype.btc_restriction.btc_restriction.expire_restrictions",
+		"gdl_custom_app.gdl_hr.closure.close_due_separations",
+	],
+}
+
+permission_query_conditions = {
+	"Separation Request": "gdl_custom_app.gdl_hr.doctype.separation_request.separation_request.get_permission_query_conditions",
+}
+
+has_permission = {
+	"Separation Request": "gdl_custom_app.gdl_hr.doctype.separation_request.separation_request.has_permission",
 }
 
 # scheduler_events = {
@@ -279,7 +290,7 @@ override_whitelisted_methods = {
 # ignore_translatable_strings_from = []
 
 
-required_apps = ["frappe", "erpnext"]
+required_apps = ["frappe", "erpnext", "hrms"]
 
 # Cost Center auto-fill + BTC stock rules (gdl_custom_app/utils/btc.py). validate,
 # so it edits the rows in the same save, before any stock/GL posting.
@@ -322,6 +333,8 @@ doc_events = {
 		"on_cancel": "gdl_custom_app.btc.receipts.reverse_usd_ledger",
 	},
 	"Stock Reconciliation": {"validate": _btc},
+	"Employee Separation": {"validate": "gdl_custom_app.gdl_hr.separation.refresh_notice_tracker"},
+	"Task": {"validate": "gdl_custom_app.gdl_hr.separation.require_clearance_attachment"},
 	"Purchase Order": {
 		"validate": [
 			"gdl_custom_app.overrides.purchase_order.validate",

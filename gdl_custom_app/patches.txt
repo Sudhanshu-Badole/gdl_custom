@@ -12,3 +12,4 @@ gdl_custom_app.patches.v1_0.btc_menu_label
 gdl_custom_app.patches.v1_0.btc_relink_receipt_rows_to_po
 gdl_custom_app.patches.v1_0.btc_relink_delivery_rows_to_so
 gdl_custom_app.patches.v1_0.btc_single_app_tile
+gdl_custom_app.patches.v1_0.hr_separation_setup
