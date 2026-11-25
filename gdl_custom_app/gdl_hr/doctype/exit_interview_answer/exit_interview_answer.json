@@ -1,0 +1,73 @@
+{
+ "actions": [],
+ "creation": "2026-11-25 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "part",
+  "question",
+  "answer",
+  "answer_type",
+  "options",
+  "mandatory"
+ ],
+ "fields": [
+  {
+   "fieldname": "part",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Part",
+   "read_only": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "question",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Question",
+   "read_only": 1,
+   "columns": 4
+  },
+  {
+   "fieldname": "answer",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Answer",
+   "columns": 4
+  },
+  {
+   "fieldname": "answer_type",
+   "fieldtype": "Select",
+   "label": "Answer Type",
+   "options": "Single Choice\nMulti Select\nRating 4\nRating 5\nText",
+   "read_only": 1
+  },
+  {
+   "fieldname": "options",
+   "fieldtype": "Small Text",
+   "label": "Options",
+   "read_only": 1,
+   "hidden": 1
+  },
+  {
+   "fieldname": "mandatory",
+   "fieldtype": "Check",
+   "label": "Mandatory",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-11-25 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "GDL HR",
+ "name": "Exit Interview Answer",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "istable": 1,
+ "editable_grid": 1
+}

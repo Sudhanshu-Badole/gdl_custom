@@ -1,0 +1,73 @@
+{
+ "actions": [],
+ "creation": "2026-11-25 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "nominee_name",
+  "relationship",
+  "share_percent",
+  "cid_no",
+  "date_of_birth",
+  "contact_no"
+ ],
+ "fields": [
+  {
+   "fieldname": "nominee_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Nominee Name",
+   "reqd": 1,
+   "columns": 3
+  },
+  {
+   "fieldname": "relationship",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Relationship",
+   "options": "\nSpouse\nChild\nParent\nSibling\nOther",
+   "reqd": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "share_percent",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Share %",
+   "precision": "2",
+   "reqd": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "cid_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "CID No.",
+   "columns": 2
+  },
+  {
+   "fieldname": "date_of_birth",
+   "fieldtype": "Date",
+   "label": "Date of Birth"
+  },
+  {
+   "fieldname": "contact_no",
+   "fieldtype": "Data",
+   "label": "Contact No."
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-11-25 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "GDL HR",
+ "name": "Employee Nominee",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "istable": 1,
+ "editable_grid": 1
+}

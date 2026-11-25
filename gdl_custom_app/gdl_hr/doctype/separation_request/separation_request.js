@@ -1,4 +1,13 @@
+const HR_ROLES = ["System Manager", "HR Manager", "HR User"];
+
 frappe.ui.form.on("Separation Request", {
+	setup(frm) {
+		// an employee files for themselves only; HR can pick anyone
+		frm.set_query("employee", () =>
+			HR_ROLES.some((role) => frappe.user.has_role(role)) ? {} : { filters: { user_id: frappe.session.user } }
+		);
+	},
+
 	onload(frm) {
 		if (frm.is_new() && !frm.doc.employee) {
 			frappe.db
@@ -27,6 +36,9 @@ frappe.ui.form.on("Separation Request", {
 					frm.doc.notice_shortfall_days,
 				])
 			);
+		}
+		if (frm.doc.nomination_status && frm.doc.nomination_status !== "Valid") {
+			notes.push(__("Nomination: {0}.", [frm.doc.nomination_status]));
 		}
 		frm.dashboard.clear_headline();
 		if (notes.length) frm.dashboard.set_headline_alert(notes.join("<br>"), "orange");

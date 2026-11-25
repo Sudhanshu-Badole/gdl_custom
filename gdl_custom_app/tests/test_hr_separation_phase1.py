@@ -91,6 +91,8 @@ class SeparationBase(IntegrationTestCase):
 		self.act(doc, "Submit for Approval", "emp")
 		self.act(doc, "Approve", "sup")
 		self.act(doc, "Approve", "ceo")
+		# rule 7 warns when there is no valid nomination: HR records why it proceeds
+		frappe.db.set_value("Separation Request", doc.name, "nomination_reason", "No nomination on file in this test")
 		return self.act(doc, "Acknowledge", "hr")
 
 

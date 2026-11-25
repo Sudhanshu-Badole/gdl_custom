@@ -1,0 +1,151 @@
+{
+ "actions": [],
+ "creation": "2026-11-25 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "employee",
+  "employee_name",
+  "employee_user",
+  "column_break_main",
+  "exit_interview",
+  "template",
+  "answers_section",
+  "intro",
+  "questionnaire",
+  "answers",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Employee",
+   "options": "Employee",
+   "read_only": 1,
+   "reqd": 1,
+   "ignore_user_permissions": 1
+  },
+  {
+   "fetch_from": "employee.employee_name",
+   "fieldname": "employee_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Employee Name",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "employee.user_id",
+   "fieldname": "employee_user",
+   "fieldtype": "Data",
+   "label": "Employee User",
+   "options": "Email",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_main",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "exit_interview",
+   "fieldtype": "Link",
+   "label": "Exit Interview",
+   "options": "Exit Interview",
+   "read_only": 1,
+   "ignore_user_permissions": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "template",
+   "fieldtype": "Link",
+   "label": "Template",
+   "options": "Exit Interview Template",
+   "read_only": 1,
+   "ignore_user_permissions": 1
+  },
+  {
+   "fieldname": "answers_section",
+   "fieldtype": "Section Break",
+   "label": "Questionnaire"
+  },
+  {
+   "fieldname": "intro",
+   "fieldtype": "HTML",
+   "options": "<p>This survey is confidential. Only HR can read your answers. Please be open and candid: your feedback shapes the experience of current and future employees. Answer every question marked as mandatory, then click Submit.</p>"
+  },
+  {
+   "fieldname": "answers",
+   "fieldtype": "Table",
+   "label": "Answers",
+   "options": "Exit Interview Answer",
+   "hidden": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Exit Interview Response",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "questionnaire",
+   "fieldtype": "HTML",
+   "label": "Questionnaire"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-11-25 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "GDL HR",
+ "name": "Exit Interview Response",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1,
+   "submit": 1,
+   "cancel": 1
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "print": 1,
+   "role": "HR Manager"
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "HR User"
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "submit": 1,
+   "if_owner": 1,
+   "role": "Employee"
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "is_submittable": 1,
+ "autoname": "format:EXIT-RESP-{YYYY}-{#####}",
+ "naming_rule": "Expression",
+ "title_field": "employee_name",
+ "track_changes": 1
+}

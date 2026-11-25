@@ -44,10 +44,13 @@
   "has_training_study_undertaking",
   "is_suspended_or_under_investigation",
   "obligation_treatment",
+  "nomination_status",
   "decision_section",
   "decision_reason",
+  "nomination_reason",
   "column_break_dec",
   "employee_separation",
+  "exit_interview",
   "workflow_state"
  ],
  "fields": [
@@ -348,11 +351,33 @@
    "fieldtype": "Data",
    "label": "Reviewer Name",
    "read_only": 1
+  },
+  {
+   "fieldname": "nomination_status",
+   "fieldtype": "Data",
+   "label": "Nomination Status",
+   "read_only": 1,
+   "description": "A valid nomination is Verified by HR and totals 100%."
+  },
+  {
+   "fieldname": "nomination_reason",
+   "fieldtype": "Small Text",
+   "label": "Reason to Proceed Without a Valid Nomination",
+   "description": "HR enters this before acknowledging when the nomination is not valid."
+  },
+  {
+   "ignore_user_permissions": 1,
+   "fieldname": "exit_interview",
+   "fieldtype": "Link",
+   "label": "Exit Interview",
+   "no_copy": 1,
+   "options": "Exit Interview",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-11-23 10:00:00.000000",
+ "modified": "2026-11-25 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "GDL HR",
  "name": "Separation Request",

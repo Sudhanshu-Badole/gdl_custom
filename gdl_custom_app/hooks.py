@@ -43,6 +43,8 @@ add_to_apps_screen = [
 
 # include js in doctype views
 doctype_js = {
+	"Exit Interview": "public/js/gdl_exit_interview.js",
+	"Employee Separation": "public/js/gdl_employee_separation.js",
 	"Stock Entry": [
 		"public/js/btc_cost_center.js",
 		"public/js/btc_defaults.js",
@@ -172,10 +174,14 @@ scheduler_events = {
 
 permission_query_conditions = {
 	"Separation Request": "gdl_custom_app.gdl_hr.doctype.separation_request.separation_request.get_permission_query_conditions",
+	"Exit Interview Response": "gdl_custom_app.gdl_hr.doctype.exit_interview_response.exit_interview_response.get_permission_query_conditions",
+	"Employee Nomination": "gdl_custom_app.gdl_hr.doctype.employee_nomination.employee_nomination.get_permission_query_conditions",
 }
 
 has_permission = {
 	"Separation Request": "gdl_custom_app.gdl_hr.doctype.separation_request.separation_request.has_permission",
+	"Exit Interview Response": "gdl_custom_app.gdl_hr.doctype.exit_interview_response.exit_interview_response.has_permission",
+	"Employee Nomination": "gdl_custom_app.gdl_hr.doctype.employee_nomination.employee_nomination.has_permission",
 }
 
 # scheduler_events = {
@@ -334,6 +340,10 @@ doc_events = {
 	},
 	"Stock Reconciliation": {"validate": _btc},
 	"Employee Separation": {"validate": "gdl_custom_app.gdl_hr.separation.refresh_notice_tracker"},
+	"Exit Interview": {
+		"validate": "gdl_custom_app.gdl_hr.exit_interview.validate_exit_interview",
+		"on_update": "gdl_custom_app.gdl_hr.exit_interview.on_exit_interview_update",
+	},
 	"Task": {"validate": "gdl_custom_app.gdl_hr.separation.require_clearance_attachment"},
 	"Purchase Order": {
 		"validate": [

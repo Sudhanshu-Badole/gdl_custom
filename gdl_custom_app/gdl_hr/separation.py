@@ -48,6 +48,8 @@ def create_employee_separation(request):
 	es.employee_separation_template = template_name
 	es.notify_users_by_email = 0
 	es.custom_separation_request = request.name
+	es.custom_exit_interview = request.exit_interview
+	es.custom_nomination_status = request.nomination_status
 
 	if skip_clearance:
 		es.append("activities", {"activity_name": DEMISE_ACTIVITY, "role": "HRA", "begin_on": 0, "duration": 30})
@@ -78,6 +80,12 @@ def refresh_notice_tracker(doc, method=None):
 	"""Employee Separation validate hook: pull the notice figures from the linked request."""
 	if not doc.get("custom_separation_request"):
 		return
+	from gdl_custom_app.gdl_hr.nomination import get_nomination_status
+
+	doc.custom_nomination_status = get_nomination_status(doc.employee)
+	doc.custom_exit_interview = doc.custom_exit_interview or frappe.db.exists(
+		"Exit Interview", {"employee": doc.employee, "docstatus": ["!=", 2]}
+	)
 	req = frappe.db.get_value(
 		"Separation Request",
 		doc.custom_separation_request,

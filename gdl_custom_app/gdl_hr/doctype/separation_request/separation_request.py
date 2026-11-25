@@ -36,9 +36,18 @@ class SeparationRequest(Document):
 		self.set_notice_days()
 		self.set_notice_tracker()
 		self.set_obligation_flags()
+		self.set_nomination_status()
 		self.validate_blocks()
 		self.validate_locked_fields()
 		self.validate_decision_reason()
+		self.validate_nomination_reason()
+
+	def onload(self):
+		"""The nomination changes outside this document: show its current status when the form opens."""
+		if self.employee and self.workflow_state != "HR Acknowledged":
+			from gdl_custom_app.gdl_hr.nomination import get_nomination_status
+
+			self.nomination_status = get_nomination_status(self.employee)
 
 	def on_update(self):
 		if self.has_value_changed("workflow_state") or self.flags.in_insert:
@@ -88,6 +97,22 @@ class SeparationRequest(Document):
 			1 if emp.status == "Suspended" or emp.custom_under_investigation else 0
 		)
 
+	def set_nomination_status(self):
+		from gdl_custom_app.gdl_hr.nomination import get_nomination_status
+
+		self.nomination_status = get_nomination_status(self.employee)
+
+	def validate_nomination_reason(self):
+		"""Rule 7 is a warning: HR may acknowledge without a valid nomination, but records why."""
+		if self.workflow_state == "HR Acknowledged" and self.has_value_changed("workflow_state"):
+			if self.nomination_status != "Valid" and not (self.nomination_reason or "").strip():
+				frappe.throw(
+					_(
+						"The employee's nomination is not valid ({0}). Enter the Reason to Proceed Without a Valid "
+						"Nomination before acknowledging."
+					).format(self.nomination_status)
+				)
+
 	def validate_blocks(self):
 		"""Rule 1: a suspended or investigated employee cannot resign (blocks submission)."""
 		submitting = self.is_new() or (
@@ -133,11 +158,27 @@ class SeparationRequest(Document):
 	def handle_state_change(self):
 		if self.workflow_state == "Approved by CEO":
 			self.sync_to_employee()
+			self.open_exit_interview()
 		elif self.workflow_state == "HR Acknowledged" and not self.employee_separation:
 			from gdl_custom_app.gdl_hr.separation import create_employee_separation
 
 			name = create_employee_separation(self)
 			self.db_set("employee_separation", name)
+
+	def open_exit_interview(self):
+		"""CEO approval starts the exit interview (needs the relieving date written just above)."""
+		if self.exit_interview:
+			return
+		from gdl_custom_app.gdl_hr.exit_interview import create_exit_interview
+
+		try:
+			name = create_exit_interview(self)
+		except Exception:  # the approval stands; HR can open the interview by hand
+			frappe.log_error(title=f"Exit interview not created: {self.name}")
+			frappe.msgprint(_("The exit interview could not be created automatically. Ask HR to create it."), indicator="orange")
+			return
+		if name:
+			self.db_set("exit_interview", name)
 
 	def sync_to_employee(self):
 		"""CEO approval fixes the resignation date and last working day on the Employee."""
