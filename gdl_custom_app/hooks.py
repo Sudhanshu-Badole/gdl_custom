@@ -45,6 +45,7 @@ add_to_apps_screen = [
 doctype_js = {
 	"Exit Interview": "public/js/gdl_exit_interview.js",
 	"Employee Separation": "public/js/gdl_employee_separation.js",
+	"Full and Final Statement": "public/js/gdl_full_and_final.js",
 	"Stock Entry": [
 		"public/js/btc_cost_center.js",
 		"public/js/btc_defaults.js",
@@ -345,6 +346,12 @@ doc_events = {
 		"on_update": "gdl_custom_app.gdl_hr.exit_interview.on_exit_interview_update",
 	},
 	"Task": {"validate": "gdl_custom_app.gdl_hr.separation.require_clearance_attachment"},
+	"Full and Final Statement": {
+		"before_insert": "gdl_custom_app.gdl_hr.fnf.before_insert",
+		"before_validate": "gdl_custom_app.gdl_hr.fnf.before_validate",
+		"validate": "gdl_custom_app.gdl_hr.fnf.validate",
+		"before_submit": "gdl_custom_app.gdl_hr.fnf.before_submit",
+	},
 	"Purchase Order": {
 		"validate": [
 			"gdl_custom_app.overrides.purchase_order.validate",

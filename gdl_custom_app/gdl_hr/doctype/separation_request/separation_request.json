@@ -51,6 +51,7 @@
   "column_break_dec",
   "employee_separation",
   "exit_interview",
+  "full_and_final_statement",
   "workflow_state"
  ],
  "fields": [
@@ -373,6 +374,14 @@
    "no_copy": 1,
    "options": "Exit Interview",
    "read_only": 1
+  },
+  {
+   "fieldname": "full_and_final_statement",
+   "fieldtype": "Link",
+   "options": "Full and Final Statement",
+   "label": "Full and Final Statement",
+   "read_only": 1,
+   "no_copy": 1
   }
  ],
  "index_web_pages_for_search": 1,

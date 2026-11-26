@@ -1,0 +1,143 @@
+{
+ "actions": [],
+ "creation": "2026-11-25 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-11-25 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "GDL HR",
+ "owner": "Administrator",
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "autoname": "field:benefit_name",
+ "naming_rule": "By fieldname",
+ "name": "Separation Benefit Type",
+ "field_order": [
+  "benefit_name",
+  "is_active",
+  "section",
+  "column_break_1",
+  "salary_component",
+  "account",
+  "mandatory",
+  "calculation_section",
+  "formula",
+  "formula_help",
+  "applicable_types",
+  "description"
+ ],
+ "fields": [
+  {
+   "fieldname": "benefit_name",
+   "fieldtype": "Data",
+   "label": "Benefit / Recovery Name",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "label": "Active",
+   "default": "1",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "section",
+   "fieldtype": "Select",
+   "label": "Statement Section",
+   "options": "A. Earned Pay\nB. Separation Benefits\nC. Recoveries\nD. Statutory Deductions\nF. Paid Outside GDL",
+   "reqd": 1,
+   "in_list_view": 1,
+   "description": "A and B are paid to the employee, C is recovered from them, D and F are shown for information only."
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "salary_component",
+   "fieldtype": "Link",
+   "options": "Salary Component",
+   "label": "Salary Component"
+  },
+  {
+   "fieldname": "account",
+   "fieldtype": "Link",
+   "options": "Account",
+   "label": "Account",
+   "description": "Expense account for a payable, receivable account for a recovery. Blank: taken from the Salary Component for the company."
+  },
+  {
+   "fieldname": "mandatory",
+   "fieldtype": "Check",
+   "label": "Always Add",
+   "description": "Add the row even when the amount works out to zero."
+  },
+  {
+   "fieldname": "calculation_section",
+   "fieldtype": "Section Break",
+   "label": "Calculation"
+  },
+  {
+   "fieldname": "formula",
+   "fieldtype": "Code",
+   "options": "Python",
+   "label": "Formula",
+   "reqd": 1,
+   "description": "An expression that returns the amount, for example BS * 15 / 26 * service_years"
+  },
+  {
+   "fieldname": "formula_help",
+   "fieldtype": "HTML",
+   "label": "Available Values",
+   "options": "<p class=\"text-muted\">Salary component abbreviations from the employee's last salary slip (for example <b>BS</b>), <b>gross_pay</b>, <b>net_pay</b>, <b>service_years</b>, <b>service_months</b>, <b>completed_years</b>, <b>notice_days</b>, <b>notice_served_days</b>, <b>notice_shortfall_days</b>, <b>bond_amount</b>, <b>bond_unserved_ratio</b>, and <b>min</b>, <b>max</b>, <b>round</b>.</p>"
+  },
+  {
+   "fieldname": "applicable_types",
+   "fieldtype": "Table MultiSelect",
+   "options": "Separation Benefit Applicability",
+   "label": "Applies To Separation Types",
+   "description": "Leave blank to apply to every separation type."
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Clause / Description"
+  }
+ ],
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR Manager",
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "HR User"
+  },
+  {
+   "read": 1,
+   "role": "Accounts Manager"
+  }
+ ]
+}

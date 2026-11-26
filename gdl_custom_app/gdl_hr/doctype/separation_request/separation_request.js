@@ -20,6 +20,26 @@ frappe.ui.form.on("Separation Request", {
 
 	refresh(frm) {
 		frm.trigger("show_flags");
+		frm.trigger("full_and_final_button");
+	},
+
+	full_and_final_button(frm) {
+		const is_hr = HR_ROLES.some((role) => frappe.user.has_role(role));
+		if (!is_hr || frm.doc.workflow_state !== "HR Acknowledged") return;
+		if (frm.doc.full_and_final_statement) {
+			frm.add_custom_button(__("Full and Final Statement"), () =>
+				frappe.set_route("Form", "Full and Final Statement", frm.doc.full_and_final_statement)
+			);
+			return;
+		}
+		frm.add_custom_button(__("Prepare Full and Final Statement"), () => {
+			frappe.call({
+				method: "gdl_custom_app.gdl_hr.fnf.start_full_and_final",
+				args: { request: frm.doc.name },
+				freeze: true,
+				callback: (r) => r.message && frappe.set_route("Form", "Full and Final Statement", r.message),
+			});
+		});
 	},
 
 	show_flags(frm) {
