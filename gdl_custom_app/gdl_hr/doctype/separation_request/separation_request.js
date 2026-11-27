@@ -52,7 +52,7 @@ frappe.ui.form.on("Separation Request", {
 		if (flags.length) notes.push(__("Open obligations: {0}", [flags.join(", ")]));
 		if (frm.doc.notice_shortfall_days > 0) {
 			notes.push(
-				__("Notice shortfall of {0} day(s): pay in lieu is deducted manually by HR.", [
+				__("Notice shortfall of {0} day(s): pay in lieu is recovered in the Full and Final Statement.", [
 					frm.doc.notice_shortfall_days,
 				])
 			);

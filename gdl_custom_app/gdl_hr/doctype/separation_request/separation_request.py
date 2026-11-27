@@ -136,16 +136,26 @@ class SeparationRequest(Document):
 		old_state = before.workflow_state or "Draft"
 		if old_state in LOCKED_STATES:
 			for fieldname in LOCKED_DATE_FIELDS:
-				if self.get(fieldname) != before.get(fieldname):
+				if self.field_changed(fieldname, before):
 					frappe.throw(_("{0} is locked after CEO approval.").format(self.meta.get_label(fieldname)))
 		elif old_state != "Draft" and not has_any_role(HR_ROLES):
 			for fieldname in EMPLOYEE_FIELDS:
-				if self.get(fieldname) != before.get(fieldname):
+				if self.field_changed(fieldname, before):
 					frappe.throw(
 						_("{0} can only be edited while the request is in Draft.").format(
 							self.meta.get_label(fieldname)
 						)
 					)
+
+	def field_changed(self, fieldname, before):
+		"""The form sends dates and numbers as text; compare them as the values they are."""
+		new, old = self.get(fieldname), before.get(fieldname)
+		fieldtype = self.meta.get_field(fieldname).fieldtype
+		if fieldtype == "Date":
+			return (getdate(new) if new else None) != (getdate(old) if old else None)
+		if fieldtype in ("Int", "Float"):
+			return flt(new) != flt(old)
+		return (new or None) != (old or None)
 
 	def validate_decision_reason(self):
 		"""Rejection or withholding needs a reason (rules 2, workflow step 2.a and 3.a)."""

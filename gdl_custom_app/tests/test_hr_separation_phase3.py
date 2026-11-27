@@ -398,6 +398,11 @@ class TestAccessAndPrint(Phase3Base):
 		self.assertFalse(frappe.has_permission("Full and Final Statement", "submit", doc=doc, user=finance))
 		self.assertFalse(frappe.has_permission("Full and Final Statement", "read", doc=doc, user=self.users["emp"]))
 
+	def test_hr_manager_can_submit_the_employee_separation(self):
+		"""Submitting creates the clearance tasks; HRMS alone lets only a System Manager do it."""
+		self.assertTrue(frappe.has_permission("Employee Separation", "submit", user=self.users["hr"]))
+		self.assertFalse(frappe.has_permission("Employee Separation", "submit", user=self.users["emp"]))
+
 	def test_benefit_types_are_hr_only_to_edit(self):
 		self.assertTrue(frappe.has_permission("Separation Benefit Type", "write", user=self.users["hr"]))
 		self.assertFalse(frappe.has_permission("Separation Benefit Type", "read", user=self.users["emp"]))

@@ -242,6 +242,21 @@ class TestWorkflow(SeparationBase):
 		with self.assertRaises(frappe.ValidationError):
 			doc.save()
 
+	def test_hr_can_save_other_fields_after_approval_when_the_form_sends_text(self):
+		"""The desk form posts dates and numbers as text; that must not look like a change to a locked field."""
+		doc = self.make_request()
+		self.act(doc, "Submit for Approval", "emp")
+		self.act(doc, "Approve", "sup")
+		self.act(doc, "Approve", "ceo")
+		frappe.set_user(self.users["hr"])
+		doc.reload()
+		doc.resignation_date = str(doc.resignation_date)
+		doc.last_working_date = str(doc.last_working_date)
+		doc.notice_days = str(int(doc.notice_days))
+		doc.nomination_reason = "Entered from the form after approval"
+		doc.save()
+		self.assertEqual(frappe.db.get_value("Separation Request", doc.name, "nomination_reason"), "Entered from the form after approval")
+
 
 class TestEmployeeSeparation(SeparationBase):
 	def test_acknowledge_creates_employee_separation_with_clearance(self):

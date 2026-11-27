@@ -157,6 +157,7 @@ def execute():
 	create_custom_fields(CUSTOM_FIELDS, update=True)
 	create_benefit_types()
 	grant_finance_access()
+	grant_hr_submit()
 	create_print_format()
 	create_notification()
 	frappe.clear_cache()
@@ -187,6 +188,15 @@ def grant_finance_access():
 		frappe.db.set_value(
 			"Custom DocPerm", {"parent": FNF, "role": role, "permlevel": 0}, {"read": 1, "write": 0, "export": 1, "report": 1, "print": 1}
 		)
+
+
+def grant_hr_submit():
+	"""HRMS lets only a System Manager submit an Employee Separation. Submitting is what creates the clearance
+	tasks, so HR Manager needs the right to do it."""
+	doctype, role = "Employee Separation", "HR Manager"
+	if not frappe.db.exists("Custom DocPerm", {"parent": doctype, "role": role, "permlevel": 0}):
+		add_permission(doctype, role, 0)
+	frappe.db.set_value("Custom DocPerm", {"parent": doctype, "role": role, "permlevel": 0}, {"read": 1, "write": 1, "submit": 1})
 
 
 def create_print_format():
